@@ -1,0 +1,384 @@
+{
+  "suite_id": "V01-V14",
+  "type": "reviewer_regression",
+  "cases": [
+    {
+      "id": "V01",
+      "raw_discharge_text": "Continue warfarin 2.5 mg daily.",
+      "medications": [
+        {
+          "id": "med-1",
+          "medication_name": "warfarin",
+          "action": "CONTINUE",
+          "dosage": "5 mg",
+          "frequency": "daily",
+          "route": null,
+          "previous_dosage": null,
+          "indication_or_note": null,
+          "evidence": {
+            "source_text": "Continue warfarin 2.5 mg daily.",
+            "source_section": "Medications",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V02",
+      "raw_discharge_text": "Continue levothyroxine 50 mcg daily.",
+      "medications": [
+        {
+          "id": "med-1",
+          "medication_name": "levothyroxine",
+          "action": "CONTINUE",
+          "dosage": "50 mg",
+          "frequency": "daily",
+          "route": null,
+          "previous_dosage": null,
+          "indication_or_note": null,
+          "evidence": {
+            "source_text": "Continue levothyroxine 50 mcg daily.",
+            "source_section": "Medications",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V03",
+      "raw_discharge_text": "Continue hydralazine 25 mg twice daily.",
+      "medications": [
+        {
+          "id": "med-1",
+          "medication_name": "hydroxyzine",
+          "action": "CONTINUE",
+          "dosage": "25 mg",
+          "frequency": "twice daily",
+          "route": null,
+          "previous_dosage": null,
+          "indication_or_note": null,
+          "evidence": {
+            "source_text": "Continue hydralazine 25 mg twice daily.",
+            "source_section": "Medications",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V04",
+      "raw_discharge_text": "Continue lisinopril 10 mg daily.",
+      "medications": [
+        {
+          "id": "med-1",
+          "medication_name": "lisinopril",
+          "action": "CONTINUE",
+          "dosage": "10 mg",
+          "frequency": "daily",
+          "route": null,
+          "previous_dosage": null,
+          "indication_or_note": "for high blood pressure",
+          "evidence": {
+            "source_text": "Continue lisinopril 10 mg daily.",
+            "source_section": "Medications",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V05",
+      "raw_discharge_text": "Take furosemide 40 mg in the morning; take 80 mg if weight increases more than 3 lb.",
+      "medications": [
+        {
+          "id": "med-1",
+          "medication_name": "furosemide",
+          "action": "CONTINUE",
+          "dosage": "40 mg",
+          "frequency": "in the morning",
+          "route": null,
+          "previous_dosage": null,
+          "indication_or_note": "take 80 mg if weight increases more than 3 lb",
+          "evidence": {
+            "source_text": "Take furosemide 40 mg in the morning; take 80 mg if weight increases more than 3 lb.",
+            "source_section": "Medications",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V06",
+      "raw_discharge_text": "Prednisone 20 mg daily for 5 days, then stop.",
+      "medications": [],
+      "follow_ups": [],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V07",
+      "raw_discharge_text": "Do not stop aspirin 81 mg daily.",
+      "medications": [
+        {
+          "id": "med-1",
+          "medication_name": "aspirin",
+          "action": "CONTINUE",
+          "dosage": "81 mg",
+          "frequency": "daily",
+          "route": null,
+          "previous_dosage": null,
+          "indication_or_note": null,
+          "evidence": {
+            "source_text": "Do not stop aspirin 81 mg daily.",
+            "source_section": "Medications",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V08",
+      "raw_discharge_text": "Follow up with Cardiology within 1 week.",
+      "medications": [],
+      "follow_ups": [],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V09",
+      "raw_discharge_text": "Return to the emergency department for fever over 101 F.",
+      "medications": [],
+      "follow_ups": [],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V10",
+      "raw_discharge_text": "Continue aspirin 81 mg daily. Stop ibuprofen.",
+      "medications": [
+        {
+          "id": "med-1",
+          "medication_name": "aspirin",
+          "action": "CONTINUE",
+          "dosage": "81 mg",
+          "frequency": "daily",
+          "route": null,
+          "previous_dosage": null,
+          "indication_or_note": null,
+          "evidence": {
+            "source_text": "Continue aspirin 81 mg daily. Stop ibuprofen.",
+            "source_section": "Medications",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V11",
+      "raw_discharge_text": "Continue sacubitril-valsartan 49/51 mg twice daily. Continue dapagliflozin 10 mg daily. Continue carvedilol 12.5 mg twice daily. Follow up with Cardiology within 7 days.",
+      "medications": [
+        {
+          "id": "med-1",
+          "medication_name": "sacubitril-valsartan",
+          "action": "CONTINUE",
+          "dosage": "49/51 mg",
+          "frequency": "twice daily",
+          "route": null,
+          "previous_dosage": null,
+          "indication_or_note": null,
+          "evidence": {
+            "source_text": "Continue sacubitril-valsartan 49/51 mg twice daily.",
+            "source_section": "Medications",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        },
+        {
+          "id": "med-2",
+          "medication_name": "dapagliflozin",
+          "action": "CONTINUE",
+          "dosage": "10 mg",
+          "frequency": "daily",
+          "route": null,
+          "previous_dosage": null,
+          "indication_or_note": null,
+          "evidence": {
+            "source_text": "Continue dapagliflozin 10 mg daily.",
+            "source_section": "Medications",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        },
+        {
+          "id": "med-3",
+          "medication_name": "carvedilol",
+          "action": "CONTINUE",
+          "dosage": "12.5 mg",
+          "frequency": "twice daily",
+          "route": null,
+          "previous_dosage": null,
+          "indication_or_note": null,
+          "evidence": {
+            "source_text": "Continue carvedilol 12.5 mg twice daily.",
+            "source_section": "Medications",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        }
+      ],
+      "follow_ups": [
+        {
+          "id": "fu-1",
+          "specialty": "Cardiology",
+          "timeframe": "within 7 days",
+          "evidence": {
+            "source_text": "Follow up with Cardiology within 7 days.",
+            "source_section": "Follow-up",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        }
+      ],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V12",
+      "raw_discharge_text": "Continue metformin 500 mg twice daily. Continue metformin 1000 mg twice daily.",
+      "medications": [
+        {
+          "id": "med-1",
+          "medication_name": "metformin",
+          "action": "CONTINUE",
+          "dosage": "500 mg",
+          "frequency": "twice daily",
+          "route": null,
+          "previous_dosage": null,
+          "indication_or_note": null,
+          "evidence": {
+            "source_text": "Continue metformin 500 mg twice daily.",
+            "source_section": "Medications",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        },
+        {
+          "id": "med-2",
+          "medication_name": "metformin",
+          "action": "CONTINUE",
+          "dosage": "1000 mg",
+          "frequency": "twice daily",
+          "route": null,
+          "previous_dosage": null,
+          "indication_or_note": null,
+          "evidence": {
+            "source_text": "Continue metformin 1000 mg twice daily.",
+            "source_section": "Medications",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V13",
+      "raw_discharge_text": "Follow up with Primary Care on 04 Dec 2026.",
+      "medications": [],
+      "follow_ups": [
+        {
+          "id": "fu-1",
+          "specialty": "Primary Care",
+          "timeframe": "on 04 Dec 2026",
+          "evidence": {
+            "source_text": "Follow up with Primary Care on 04 Dec 2026.",
+            "source_section": "Follow-up",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        }
+      ],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    },
+    {
+      "id": "V14",
+      "raw_discharge_text": "No home medications were stopped except warfarin. Follow up with Primary Care within 1 week.",
+      "medications": [],
+      "follow_ups": [
+        {
+          "id": "fu-1",
+          "specialty": "Primary Care",
+          "timeframe": "within 1 week",
+          "evidence": {
+            "source_text": "Follow up with Primary Care within 1 week.",
+            "source_section": "Follow-up",
+            "page": null,
+            "start": null,
+            "end": null
+          }
+        }
+      ],
+      "warnings": [],
+      "tasks": [],
+      "provider_matches": []
+    }
+  ]
+}
