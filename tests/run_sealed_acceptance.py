@@ -1,17 +1,18 @@
-"""Sealed one-shot acceptance runner for Phase 3C (V01-V14 and V15-V20).
+"""Sealed one-shot acceptance runner for Phase 3C (tests/v_suite_cases.json).
 
 Strictly enforces:
-- Presence check for both reviewer-sealed files before execution:
-  - tests/v01_v14_cases.json
-  - tests/v15_v20_cases.json
-  If either file is missing, prints ONLY:
-  WAITING FOR REVIEWER-SEALED V01–V14 AND V15–V20 TEST FILES.
+- Pre-execution and post-execution SHA256 verification of:
+  - tests/v_suite_cases.json (expected: 65f4c8853b0652312dd23bfd9afa760717f8e0c6f67dd8c41005f0853dc08231)
+  - tests/v_suite_expected.json (expected: 453e07f3c8dcb60e677f6f06acdff34872f5b51fd8fb2d0b684c662917f46c4c)
+  - backend/safety/validator.py
+  - backend/schemas/models.py
+  - tests/test_adversarial_independent.py
+  - tests/schema_dry_run.py
+  - tests/run_sealed_acceptance.py
 - Clean git working tree verification before and after execution.
-- Pre-execution and post-execution SHA256 verification of both case files,
-  backend/safety/validator.py, backend/schemas/models.py,
-  tests/test_adversarial_independent.py, and this runner.
 - Single-execution lock so any attempt to rerun the suite fails loudly.
 - Zero modification of supplied JSON files.
+- Does NOT read or compare against v_suite_expected.json during semantic execution.
 """
 
 from __future__ import annotations
@@ -31,12 +32,16 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-V01_V14_PATH = ROOT_DIR / "tests" / "v01_v14_cases.json"
-V15_V20_PATH = ROOT_DIR / "tests" / "v15_v20_cases.json"
+V_SUITE_CASES_PATH = ROOT_DIR / "tests" / "v_suite_cases.json"
+V_SUITE_EXPECTED_PATH = ROOT_DIR / "tests" / "v_suite_expected.json"
 VALIDATOR_PATH = ROOT_DIR / "backend" / "safety" / "validator.py"
 MODELS_PATH = ROOT_DIR / "backend" / "schemas" / "models.py"
 ADVERSARIAL_PATH = ROOT_DIR / "tests" / "test_adversarial_independent.py"
+DRY_RUN_PATH = ROOT_DIR / "tests" / "schema_dry_run.py"
 RUNNER_PATH = Path(__file__).resolve()
+
+AUTHORITATIVE_CASES_SHA256 = "65f4c8853b0652312dd23bfd9afa760717f8e0c6f67dd8c41005f0853dc08231"
+AUTHORITATIVE_EXPECTED_SHA256 = "453e07f3c8dcb60e677f6f06acdff34872f5b51fd8fb2d0b684c662917f46c4c"
 
 LOCK_DIR = Path(
     os.environ.get(
@@ -47,7 +52,7 @@ LOCK_DIR = Path(
 
 
 def sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest().upper()
+    return hashlib.sha256(path.read_bytes()).hexdigest().lower()
 
 
 def get_git_sha() -> str:
@@ -72,59 +77,85 @@ def get_git_status_short() -> str:
     return res.stdout.strip()
 
 
-def _extract_cases_list(raw_json: Any) -> list[dict[str, Any]]:
-    if isinstance(raw_json, list):
-        return raw_json
-    if isinstance(raw_json, dict) and isinstance(raw_json.get("cases"), list):
-        return raw_json["cases"]
-    raise ValueError("Unsupported top-level JSON structure in sealed cases file.")
+def main() -> None:
+    if not V_SUITE_CASES_PATH.is_file() or not V_SUITE_EXPECTED_PATH.is_file():
+        print("WAITING FOR THE ACTUAL REVIEWER-SUPPLIED SCHEMA-CORRECT V01–V14 AND V15–V20 FILES.")
+        sys.exit(1)
 
-
-def _run_suite_once(
-    suite_name: str,
-    file_path: Path,
-    expected_sha256: str,
-    client: Any,
-) -> dict[str, Any]:
-    # Verify file hash before reading
-    actual_before = sha256_file(file_path)
-    if actual_before != expected_sha256:
+    cases_hash = sha256_file(V_SUITE_CASES_PATH)
+    expected_hash = sha256_file(V_SUITE_EXPECTED_PATH)
+    if cases_hash != AUTHORITATIVE_CASES_SHA256:
         raise RuntimeError(
-            f"INTEGRITY ERROR: {file_path} SHA256 changed before execution "
-            f"(expected {expected_sha256}, got {actual_before})."
+            f"HASH MISMATCH for v_suite_cases.json: expected {AUTHORITATIVE_CASES_SHA256}, got {cases_hash}"
+        )
+    if expected_hash != AUTHORITATIVE_EXPECTED_SHA256:
+        raise RuntimeError(
+            f"HASH MISMATCH for v_suite_expected.json: expected {AUTHORITATIVE_EXPECTED_SHA256}, got {expected_hash}"
         )
 
-    raw_bytes = file_path.read_bytes()
-    parsed_json = json.loads(raw_bytes.decode("utf-8"))
-    cases = _extract_cases_list(parsed_json)
+    git_status_before = get_git_status_short()
+    if git_status_before:
+        raise RuntimeError(
+            f"ABORT: Git working tree is not clean before execution:\n{git_status_before}"
+        )
 
-    records: list[dict[str, Any]] = []
+    import fastapi
+    import pydantic
+    from fastapi.testclient import TestClient
+    from backend.main import app
+
+    validator_hash = sha256_file(VALIDATOR_PATH)
+    models_hash = sha256_file(MODELS_PATH)
+    adversarial_hash = sha256_file(ADVERSARIAL_PATH)
+    dry_run_hash = sha256_file(DRY_RUN_PATH)
+    runner_hash = sha256_file(RUNNER_PATH)
+    git_sha = get_git_sha()
+
+    LOCK_DIR.mkdir(parents=True, exist_ok=True)
+    lock_file = LOCK_DIR / f"execution_lock_{git_sha}_{cases_hash[:16]}.json"
+    if lock_file.exists():
+        raise RuntimeError(
+            f"REPRODUCIBILITY VIOLATION: Sealed acceptance suite has ALREADY been executed once "
+            f"(lock file exists at {lock_file}). Rerunning is strictly prohibited."
+        )
+
+    timestamp_iso = datetime.datetime.now(datetime.timezone.utc).astimezone().isoformat()
+    lock_file.write_text(
+        json.dumps(
+            {
+                "locked_at": timestamp_iso,
+                "git_sha": git_sha,
+                "v_suite_cases_sha256": cases_hash,
+                "v_suite_expected_sha256": expected_hash,
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    raw_bytes = V_SUITE_CASES_PATH.read_bytes()
+    cases: list[dict[str, Any]] = json.loads(raw_bytes.decode("utf-8"))
+
+    client = TestClient(app, raise_server_exceptions=False)
+
     table_rows: list[str] = [
-        "case_id | HTTP | overall_safety_status | patient_releasable | requires_human_review | item_statuses | hazard_codes | latency_ms"
+        "case_id | HTTP | overall_status | hazard_codes | per_item_status | patient_releasable | release_blocked | latency_ms"
     ]
+    records: list[dict[str, Any]] = []
 
-    for idx, entry in enumerate(cases, start=1):
-        case_id = str(
-            entry.get("case_id")
-            or entry.get("id")
-            or (entry.get("payload", {}) if isinstance(entry.get("payload"), dict) else {}).get("case_id")
-            or f"{suite_name}-{idx:02d}"
-        )
-        request_payload = entry["payload"] if isinstance(entry, dict) and "payload" in entry else entry
-
+    for entry in cases:
+        case_id = str(entry["case_id"])
         t0 = time.perf_counter()
-        response = client.post("/api/v1/validate", json=request_payload)
+        response = client.post("/api/v1/validate", json=entry)
         latency_ms = round((time.perf_counter() - t0) * 1000.0, 2)
 
         http_status = response.status_code
-        try:
-            resp_body = response.json()
-        except Exception:
-            resp_body = {"raw_text": response.text}
+        resp_body = response.json()
 
         if http_status == 200 and isinstance(resp_body, dict):
             overall_status = resp_body.get("overall_safety_status", "UNKNOWN")
             patient_releasable = resp_body.get("patient_releasable", False)
+            release_blocked = not bool(patient_releasable)
             requires_human_review = resp_body.get("requires_human_review", True)
             hazards_list = resp_body.get("hazard_codes_detected", [])
             hazards_str = ",".join(hazards_list) if hazards_list else "NONE"
@@ -135,7 +166,7 @@ def _run_suite_once(
                 + vp.get("warning_signs", [])
                 + vp.get("tasks", [])
             )
-            item_statuses = (
+            per_item_status = (
                 "; ".join(
                     f"{it.get('id')}:{it.get('safety_status')}/{it.get('review_status')}/blocked={it.get('release_blocked')}"
                     for it in items
@@ -146,105 +177,38 @@ def _run_suite_once(
         else:
             overall_status = f"HTTP_{http_status}_REJECTED"
             patient_releasable = False
+            release_blocked = True
             requires_human_review = True
+            hazards_list = []
             hazards_str = "NONE"
-            item_statuses = "N/A"
+            per_item_status = "N/A"
 
         row = (
-            f"{case_id} | {http_status} | {overall_status} | {patient_releasable} | "
-            f"{requires_human_review} | {item_statuses} | {hazards_str} | {latency_ms:.2f}"
+            f"{case_id} | {http_status} | {overall_status} | {hazards_str} | "
+            f"{per_item_status} | {patient_releasable} | {release_blocked} | {latency_ms:.2f}"
         )
         table_rows.append(row)
-
         records.append(
             {
                 "case_id": case_id,
                 "http_status": http_status,
-                "overall_safety_status": overall_status,
+                "overall_status": overall_status,
+                "hazard_codes": hazards_list,
+                "per_item_status": per_item_status,
                 "patient_releasable": patient_releasable,
+                "release_blocked": release_blocked,
                 "requires_human_review": requires_human_review,
-                "item_statuses": item_statuses,
-                "hazard_codes": hazards_list if http_status == 200 and isinstance(resp_body, dict) else [],
                 "latency_ms": latency_ms,
-                "expected_metadata_in_case_file": {
-                    k: v for k, v in entry.items() if k != "payload"
-                }
-                if isinstance(entry, dict) and "payload" in entry
-                else {},
-                "raw_input": entry,
-                "raw_output": resp_body,
+                "raw_input_payload": entry,
+                "raw_validator_output": resp_body,
             }
         )
 
-    # Verify file hash after execution to prove zero modification
-    actual_after = sha256_file(file_path)
-    if actual_after != expected_sha256:
-        raise RuntimeError(
-            f"INTEGRITY ERROR: {file_path} was modified during execution "
-            f"(expected {expected_sha256}, got {actual_after})."
-        )
-
-    return {
-        "suite_name": suite_name,
-        "file_path": str(file_path),
-        "file_sha256": expected_sha256,
-        "run_count": 1,
-        "table": "\n".join(table_rows),
-        "cases": records,
-    }
-
-
-def main() -> None:
-    if not V01_V14_PATH.is_file() or not V15_V20_PATH.is_file():
-        print("WAITING FOR REVIEWER-SEALED V01–V14 AND V15–V20 TEST FILES.")
-        return
-
-    import fastapi
-    import pydantic
-    from fastapi.testclient import TestClient
-    from backend.main import app
-
-    git_status_before = get_git_status_short()
-    if git_status_before:
-        raise RuntimeError(
-            f"ABORT: Git working tree is not clean before execution:\n{git_status_before}"
-        )
-
-    v01_v14_hash = sha256_file(V01_V14_PATH)
-    v15_v20_hash = sha256_file(V15_V20_PATH)
-    validator_hash = sha256_file(VALIDATOR_PATH)
-    models_hash = sha256_file(MODELS_PATH)
-    adversarial_hash = sha256_file(ADVERSARIAL_PATH)
-    runner_hash = sha256_file(RUNNER_PATH)
-    git_sha = get_git_sha()
-
-    LOCK_DIR.mkdir(parents=True, exist_ok=True)
-    lock_file = LOCK_DIR / f"execution_lock_{git_sha}_{v01_v14_hash[:12]}_{v15_v20_hash[:12]}.json"
-    if lock_file.exists():
-        raise RuntimeError(
-            f"REPRODUCIBILITY VIOLATION: Sealed acceptance suites have ALREADY been executed once "
-            f"(lock file exists at {lock_file}). Rerunning is strictly prohibited."
-        )
-
-    timestamp_iso = datetime.datetime.now(datetime.timezone.utc).astimezone().isoformat()
-    # Write lock file immediately before running so no second run can ever occur
-    lock_file.write_text(
-        json.dumps(
-            {
-                "locked_at": timestamp_iso,
-                "git_sha": git_sha,
-                "v01_v14_sha256": v01_v14_hash,
-                "v15_v20_sha256": v15_v20_hash,
-            },
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-
-    client = TestClient(app, raise_server_exceptions=False)
-
-    v01_v14_result = _run_suite_once("V01_V14", V01_V14_PATH, v01_v14_hash, client)
-    v15_v20_result = _run_suite_once("V15_V20", V15_V20_PATH, v15_v20_hash, client)
+    # Verify both files remain byte-for-byte identical after execution
+    if sha256_file(V_SUITE_CASES_PATH) != cases_hash:
+        raise RuntimeError("INTEGRITY ERROR: v_suite_cases.json changed during execution!")
+    if sha256_file(V_SUITE_EXPECTED_PATH) != expected_hash:
+        raise RuntimeError("INTEGRITY ERROR: v_suite_expected.json changed during execution!")
 
     git_status_after = get_git_status_short()
     if git_status_after:
@@ -253,31 +217,31 @@ def main() -> None:
         )
 
     manifest = {
-        "timestamp": timestamp_iso,
+        "semantic_run_timestamp": timestamp_iso,
         "git_sha": git_sha,
         "git_working_tree_clean": git_status_after == "",
         "python_version": platform.python_version(),
         "fastapi_version": fastapi.__version__,
         "pydantic_version": pydantic.__version__,
         "sha256": {
-            "v01_v14_cases.json": v01_v14_hash,
-            "v15_v20_cases.json": v15_v20_hash,
+            "v_suite_cases.json": cases_hash,
+            "v_suite_expected.json": expected_hash,
             "validator.py": validator_hash,
             "models.py": models_hash,
             "test_adversarial_independent.py": adversarial_hash,
+            "schema_dry_run.py": dry_run_hash,
             "run_sealed_acceptance.py": runner_hash,
         },
-        "v01_v14_run_count": 1,
-        "v15_v20_run_count": 1,
-        "v01_v14": v01_v14_result,
-        "v15_v20": v15_v20_result,
+        "run_count": 1,
+        "table": "\n".join(table_rows),
+        "cases": records,
     }
 
-    output_file = LOCK_DIR / "sealed_acceptance_full_output.json"
+    output_file = LOCK_DIR / "v_suite_28_raw_output.json"
     output_file.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
-    print("=== REPRODUCIBILITY MANIFEST ===")
-    print(f"TIMESTAMP: {timestamp_iso}")
+    print("=== SEMANTIC ACCEPTANCE MANIFEST ===")
+    print(f"SEMANTIC_RUN_TIMESTAMP: {timestamp_iso}")
     print(f"GIT_SHA: {git_sha}")
     print(f"GIT_CLEAN: {git_status_after == ''}")
     print(f"PYTHON_VERSION: {platform.python_version()}")
@@ -285,10 +249,8 @@ def main() -> None:
     print(f"PYDANTIC_VERSION: {pydantic.__version__}")
     for k, v in manifest["sha256"].items():
         print(f"SHA256({k}): {v}")
-    print("\n=== V01-V14 RESULTS ===")
-    print(v01_v14_result["table"])
-    print("\n=== V15-V20 RESULTS ===")
-    print(v15_v20_result["table"])
+    print("\n=== V01-V14 & W01-W14 RESULTS (28 CASES) ===")
+    print(manifest["table"])
     print(f"\nCOMPLETE_RAW_IO_SAVED_TO: {output_file}")
 
 

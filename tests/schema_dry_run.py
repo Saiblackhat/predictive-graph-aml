@@ -1,13 +1,15 @@
-"""Schema-only dry-run validator for reviewer-supplied V01-V14 and V15-V20 files.
+"""Schema-only dry-run validator for tests/v_suite_cases.json.
 
-Validates each payload in tests/v01_v14_cases.json and tests/v15_v20_cases.json
-against the exact production Pydantic schema (DischargeExtractionPayload)
-WITHOUT calling backend/safety/validator.py and WITHOUT consuming the one-shot
-sealed acceptance lock.
+Validates every payload in tests/v_suite_cases.json against the exact production
+Pydantic schema (DischargeExtractionPayload) WITHOUT calling
+backend/safety/validator.py and WITHOUT consuming or altering the one-shot
+acceptance state.
 """
 
 from __future__ import annotations
 
+import datetime
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -21,8 +23,12 @@ if str(ROOT_DIR) not in sys.path:
 
 from backend.schemas.models import DischargeExtractionPayload, RawTextTooLargeError
 
-V01_V14_PATH = ROOT_DIR / "tests" / "v01_v14_cases.json"
-V15_V20_PATH = ROOT_DIR / "tests" / "v15_v20_cases.json"
+DEFAULT_SUITE_PATH = ROOT_DIR / "tests" / "v_suite_cases.json"
+EXPECTED_PATH = ROOT_DIR / "tests" / "v_suite_expected.json"
+
+
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest().lower()
 
 
 def _extract_cases(raw_json: Any) -> list[dict[str, Any]]:
@@ -33,23 +39,33 @@ def _extract_cases(raw_json: Any) -> list[dict[str, Any]]:
     raise ValueError("Unsupported top-level JSON structure.")
 
 
-def check_file(label: str, path: Path) -> bool:
-    if not path.is_file():
-        print(f"{label}: MISSING ({path})")
-        return False
+def main() -> None:
+    target = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_SUITE_PATH
+    if not target.is_file():
+        print(f"MISSING FILE: {target}")
+        sys.exit(1)
 
-    data = json.loads(path.read_text(encoding="utf-8"))
+    ts = datetime.datetime.now(datetime.timezone.utc).astimezone().isoformat()
+    cases_hash = sha256_file(target)
+    expected_hash = sha256_file(EXPECTED_PATH) if EXPECTED_PATH.is_file() else "MISSING"
+
+    data = json.loads(target.read_text(encoding="utf-8"))
     cases = _extract_cases(data)
     all_valid = True
-    print(f"=== {label} SCHEMA-ONLY DRY RUN ({len(cases)} cases) ===")
+
+    print(f"SCHEMA_DRY_RUN_TIMESTAMP: {ts}")
+    print(f"SHA256(v_suite_cases.json): {cases_hash}")
+    print(f"SHA256(v_suite_expected.json): {expected_hash}")
+    print(f"TOTAL_CASES: {len(cases)}")
     print("case_id | schema_valid | http_equivalent | pydantic_errors")
+
     for idx, entry in enumerate(cases, start=1):
         payload = entry["payload"] if isinstance(entry, dict) and "payload" in entry else entry
         case_id = str(
             entry.get("case_id")
             or entry.get("id")
             or (payload.get("case_id") if isinstance(payload, dict) else None)
-            or f"{label}-{idx:02d}"
+            or f"CASE-{idx:02d}"
         )
         try:
             DischargeExtractionPayload.model_validate(payload)
@@ -61,17 +77,13 @@ def check_file(label: str, path: Path) -> bool:
             all_valid = False
             errs = json.dumps(exc.errors(include_url=False, include_input=False))
             print(f"{case_id} | false | 422 | {errs}")
-    return all_valid
 
+    # Verify target file was not modified
+    if sha256_file(target) != cases_hash:
+        print("INTEGRITY ERROR: v_suite_cases.json changed during schema dry run.")
+        sys.exit(3)
 
-def main() -> None:
-    if not V01_V14_PATH.is_file() or not V15_V20_PATH.is_file():
-        print("WAITING FOR THE ACTUAL REVIEWER-SUPPLIED SCHEMA-CORRECT V01–V14 AND V15–V20 FILES.")
-        sys.exit(1)
-
-    ok_1 = check_file("V01-V14", V01_V14_PATH)
-    ok_2 = check_file("V15-V20", V15_V20_PATH)
-    if not (ok_1 and ok_2):
+    if not all_valid:
         sys.exit(2)
 
 

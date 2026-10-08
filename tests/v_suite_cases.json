@@ -1,0 +1,842 @@
+[
+  {
+    "case_id": "V01",
+    "patient_identifier": "PT-V01",
+    "raw_discharge_text": "Continue warfarin 2.5 mg daily.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "warfarin",
+        "action": "CONTINUE",
+        "dosage": "5 mg",
+        "frequency": "daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue warfarin 2.5 mg daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V02",
+    "patient_identifier": "PT-V02",
+    "raw_discharge_text": "Continue levothyroxine 50 mcg daily.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "levothyroxine",
+        "action": "CONTINUE",
+        "dosage": "50 mg",
+        "frequency": "daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue levothyroxine 50 mcg daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V03",
+    "patient_identifier": "PT-V03",
+    "raw_discharge_text": "Continue metoprolol 25 mg twice daily and lisinopril 10 mg once daily.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "metoprolol",
+        "action": "CONTINUE",
+        "dosage": "10 mg",
+        "frequency": "twice daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue metoprolol 25 mg twice daily and lisinopril 10 mg once daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      },
+      {
+        "id": "med-2",
+        "medication_name": "lisinopril",
+        "action": "CONTINUE",
+        "dosage": "25 mg",
+        "frequency": "once daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue metoprolol 25 mg twice daily and lisinopril 10 mg once daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V04",
+    "patient_identifier": "PT-V04",
+    "raw_discharge_text": "Continue hydroxyzine 25 mg at bedtime.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "hydralazine",
+        "action": "CONTINUE",
+        "dosage": "25 mg",
+        "frequency": "at bedtime",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue hydroxyzine 25 mg at bedtime.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V05",
+    "patient_identifier": "PT-V05",
+    "raw_discharge_text": "Continue furosemide 40 mg daily; take 80 mg on days when weight is up more than 3 lb.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "furosemide",
+        "action": "CONTINUE",
+        "dosage": "40 mg",
+        "frequency": "daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue furosemide 40 mg daily; take 80 mg on days when weight is up more than 3 lb.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V06",
+    "patient_identifier": "PT-V06",
+    "raw_discharge_text": "Continue prednisone 20 mg daily for 5 days, then stop.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "prednisone",
+        "action": "CONTINUE",
+        "dosage": "20 mg",
+        "frequency": "daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue prednisone 20 mg daily for 5 days, then stop.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V07",
+    "patient_identifier": "PT-V07",
+    "raw_discharge_text": "Continue acetaminophen 500 mg every 6 hours only if needed for pain.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "acetaminophen",
+        "action": "CONTINUE",
+        "dosage": "500 mg",
+        "frequency": "every 6 hours",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": "Continue taking acetaminophen 500 mg every 6 hours.",
+        "source_evidence": {
+          "source_text": "Continue acetaminophen 500 mg every 6 hours only if needed for pain.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V08",
+    "patient_identifier": "PT-V08",
+    "raw_discharge_text": "Call Primary Care if your weight rises more than 3 lb in one day.",
+    "medications": [],
+    "follow_ups": [],
+    "warning_signs": [
+      {
+        "id": "warn-1",
+        "symptom_description": "weight rises more than 3 lb in one day",
+        "urgency": "ROUTINE",
+        "action_to_take": "Call Primary Care",
+        "confidence": 0.95,
+        "patient_friendly_summary": "Call Primary Care if your weight rises.",
+        "source_evidence": {
+          "source_text": "Call Primary Care if your weight rises more than 3 lb in one day.",
+          "source_section": "Discharge Instructions",
+          "source_page": 1
+        }
+      }
+    ],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V09",
+    "patient_identifier": "PT-V09",
+    "raw_discharge_text": "Go to the emergency department if chest pain lasts more than 5 minutes.",
+    "medications": [],
+    "follow_ups": [],
+    "warning_signs": [
+      {
+        "id": "warn-1",
+        "symptom_description": "chest pain lasting more than 5 minutes",
+        "urgency": "ROUTINE",
+        "action_to_take": "Go to the emergency department",
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Go to the emergency department if chest pain lasts more than 5 minutes.",
+          "source_section": "Discharge Instructions",
+          "source_page": 1
+        }
+      }
+    ],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V10",
+    "patient_identifier": "PT-V10",
+    "raw_discharge_text": "Continue sacubitril-valsartan 49/51 mg twice daily. Stop eplerenone.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "sacubitril-valsartan",
+        "action": "CONTINUE",
+        "dosage": "49/51 mg",
+        "frequency": "twice daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue sacubitril-valsartan 49/51 mg twice daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V11",
+    "patient_identifier": "PT-V11",
+    "raw_discharge_text": "Continue sacubitril-valsartan 49/51 mg twice daily. Continue dapagliflozin 10 mg daily. Continue carvedilol 12.5 mg twice daily. Follow up with Cardiology within 7 days.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "sacubitril-valsartan",
+        "action": "CONTINUE",
+        "dosage": "49/51 mg",
+        "frequency": "twice daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue sacubitril-valsartan 49/51 mg twice daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      },
+      {
+        "id": "med-2",
+        "medication_name": "dapagliflozin",
+        "action": "CONTINUE",
+        "dosage": "10 mg",
+        "frequency": "daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue dapagliflozin 10 mg daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      },
+      {
+        "id": "med-3",
+        "medication_name": "carvedilol",
+        "action": "CONTINUE",
+        "dosage": "12.5 mg",
+        "frequency": "twice daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue carvedilol 12.5 mg twice daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [
+      {
+        "id": "fu-1",
+        "specialty": "Cardiology",
+        "timeframe": "within 7 days",
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Follow up with Cardiology within 7 days.",
+          "source_section": "Follow-Up Appointments",
+          "source_page": 1
+        }
+      }
+    ],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V12",
+    "patient_identifier": "PT-V12",
+    "raw_discharge_text": "Continue metformin 500 mg twice daily.\n\nDischarge medication list: metformin 1000 mg twice daily.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "metformin",
+        "action": "CONTINUE",
+        "dosage": "500 mg",
+        "frequency": "twice daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue metformin 500 mg twice daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V13",
+    "patient_identifier": "PT-V13",
+    "raw_discharge_text": "Follow up with Cardiology in 1 to 2 weeks.",
+    "medications": [],
+    "follow_ups": [
+      {
+        "id": "fu-1",
+        "specialty": "Cardiology",
+        "timeframe": "within 2 weeks",
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Follow up with Cardiology in 1 to 2 weeks.",
+          "source_section": "Follow-Up Appointments",
+          "source_page": 1
+        }
+      }
+    ],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "V14",
+    "patient_identifier": "PT-V14",
+    "raw_discharge_text": "No home medications were stopped except warfarin. Schedule a visit with Endocrinology within 2 weeks.",
+    "medications": [],
+    "follow_ups": [
+      {
+        "id": "fu-1",
+        "specialty": "Endocrinology",
+        "timeframe": "within 2 weeks",
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Schedule a visit with Endocrinology within 2 weeks.",
+          "source_section": "Follow-Up Appointments",
+          "source_page": 1
+        }
+      }
+    ],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W01",
+    "patient_identifier": "PT-W01",
+    "raw_discharge_text": "Continue digoxin 0.125 mg daily.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "digoxin",
+        "action": "CONTINUE",
+        "dosage": "0.25 mg",
+        "frequency": "daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue digoxin 0.125 mg daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W02",
+    "patient_identifier": "PT-W02",
+    "raw_discharge_text": "Take home medication metoprolol succinate 50 mg once daily as before.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "metoprolol succinate",
+        "action": "CONTINUE",
+        "dosage": "50 mg",
+        "frequency": "once daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Take home medication metoprolol succinate 50 mg once daily as before.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W03",
+    "patient_identifier": "PT-W03",
+    "raw_discharge_text": "Continue carbamazepine 200 mg twice daily. Do not stop carbamazepine abruptly.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "carbamazepine",
+        "action": "CONTINUE",
+        "dosage": "200 mg",
+        "frequency": "twice daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue carbamazepine 200 mg twice daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W04",
+    "patient_identifier": "PT-W04",
+    "raw_discharge_text": "Hold metformin 500 mg twice daily until follow-up labs.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "metformin",
+        "action": "CONTINUE",
+        "dosage": "500 mg",
+        "frequency": "twice daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Hold metformin 500 mg twice daily until follow-up labs.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W05",
+    "patient_identifier": "PT-W05",
+    "raw_discharge_text": "Continue levetiracetam 500 mg twice daily. Call 911 if a seizure lasts longer than 5 minutes.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "levetiracetam",
+        "action": "CONTINUE",
+        "dosage": "500 mg",
+        "frequency": "twice daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue levetiracetam 500 mg twice daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [
+      {
+        "id": "warn-1",
+        "symptom_description": "seizure lasting longer than 5 minutes",
+        "urgency": "ROUTINE",
+        "action_to_take": "Call 911",
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Call 911 if a seizure lasts longer than 5 minutes.",
+          "source_section": "Discharge Instructions",
+          "source_page": 1
+        }
+      }
+    ],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W06",
+    "patient_identifier": "PT-W06",
+    "raw_discharge_text": "Follow up with Neurology in 2 to 4 weeks.",
+    "medications": [],
+    "follow_ups": [
+      {
+        "id": "fu-1",
+        "specialty": "Neurology",
+        "timeframe": "within 2 weeks",
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Follow up with Neurology in 2 to 4 weeks.",
+          "source_section": "Follow-Up Appointments",
+          "source_page": 1
+        }
+      }
+    ],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W07",
+    "patient_identifier": "PT-W07",
+    "raw_discharge_text": "Continue rivaroxaban 20 mg once daily with the evening meal. Follow up with Hematology within 14 days.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "rivaroxaban",
+        "action": "CONTINUE",
+        "dosage": "20 mg",
+        "frequency": "once daily with the evening meal",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue rivaroxaban 20 mg once daily with the evening meal.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [
+      {
+        "id": "fu-1",
+        "specialty": "Hematology",
+        "timeframe": "within 14 days",
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Follow up with Hematology within 14 days.",
+          "source_section": "Follow-Up Appointments",
+          "source_page": 1
+        }
+      }
+    ],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W08",
+    "patient_identifier": "PT-W08",
+    "raw_discharge_text": "Continue prednisone 10 mg daily until your clinic visit.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "prednisone",
+        "action": "CONTINUE",
+        "dosage": "10 mg",
+        "frequency": "daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": "Continue taking prednisone 10 mg daily.",
+        "source_evidence": {
+          "source_text": "Continue prednisone 10 mg daily until your clinic visit.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W09",
+    "patient_identifier": "PT-W09",
+    "raw_discharge_text": "Call Cardiology if your weight rises more than 3 lb in one day.",
+    "medications": [],
+    "follow_ups": [],
+    "warning_signs": [
+      {
+        "id": "warn-1",
+        "symptom_description": "weight rises more than 3 lb in one day",
+        "urgency": "ROUTINE",
+        "action_to_take": "Call Cardiology",
+        "confidence": 0.95,
+        "patient_friendly_summary": "Call Cardiology if your weight rises more than 5 lb in one day.",
+        "source_evidence": {
+          "source_text": "Call Cardiology if your weight rises more than 3 lb in one day.",
+          "source_section": "Discharge Instructions",
+          "source_page": 1
+        }
+      }
+    ],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W10",
+    "patient_identifier": "PT-W10",
+    "raw_discharge_text": "Continue clonazepam 0.5 mg at bedtime.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "clonidine",
+        "action": "CONTINUE",
+        "dosage": "0.5 mg",
+        "frequency": "at bedtime",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Continue clonazepam 0.5 mg at bedtime.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W11",
+    "patient_identifier": "PT-W11",
+    "raw_discharge_text": "Follow up with Urology on 04 Dec 2026. Follow up with Urology within 7 days.",
+    "medications": [],
+    "follow_ups": [
+      {
+        "id": "fu-1",
+        "specialty": "Urology",
+        "timeframe": "on 04 Dec 2026",
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Follow up with Urology on 04 Dec 2026.",
+          "source_section": "Follow-Up Appointments",
+          "source_page": 1
+        }
+      },
+      {
+        "id": "fu-2",
+        "specialty": "Urology",
+        "timeframe": "within 7 days",
+        "confidence": 0.95,
+        "patient_friendly_summary": null,
+        "source_evidence": {
+          "source_text": "Follow up with Urology within 7 days.",
+          "source_section": "Follow-Up Appointments",
+          "source_page": 1
+        }
+      }
+    ],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W12",
+    "patient_identifier": "PT-W12",
+    "raw_discharge_text": "Call Primary Care if your weight rises more than 3 lb in one day.",
+    "medications": [],
+    "follow_ups": [],
+    "warning_signs": [
+      {
+        "id": "warn-1",
+        "symptom_description": "weight rises more than 3 lb in one day",
+        "urgency": "ROUTINE",
+        "action_to_take": "Call Primary Care",
+        "confidence": 0.95,
+        "patient_friendly_summary": "Call Primary Care if your weight rises less than 3 lb in one day.",
+        "source_evidence": {
+          "source_text": "Call Primary Care if your weight rises more than 3 lb in one day.",
+          "source_section": "Discharge Instructions",
+          "source_page": 1
+        }
+      }
+    ],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W13",
+    "patient_identifier": "PT-W13",
+    "raw_discharge_text": "Follow up with Cardiology within 7 days.",
+    "medications": [],
+    "follow_ups": [
+      {
+        "id": "fu-1",
+        "specialty": "Cardiology",
+        "timeframe": "within 7 days",
+        "confidence": 0.95,
+        "patient_friendly_summary": "Follow up with Cardiology after 7 days.",
+        "source_evidence": {
+          "source_text": "Follow up with Cardiology within 7 days.",
+          "source_section": "Follow-Up Appointments",
+          "source_page": 1
+        }
+      }
+    ],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  },
+  {
+    "case_id": "W14",
+    "patient_identifier": "PT-W14",
+    "raw_discharge_text": "Continue ondansetron 4 mg every 8 hours only if needed for nausea. Continue lisinopril 10 mg daily.",
+    "medications": [
+      {
+        "id": "med-1",
+        "medication_name": "ondansetron",
+        "action": "CONTINUE",
+        "dosage": "4 mg",
+        "frequency": "every 8 hours",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": "Take ondansetron 4 mg every 8 hours.",
+        "source_evidence": {
+          "source_text": "Continue ondansetron 4 mg every 8 hours only if needed for nausea.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      },
+      {
+        "id": "med-2",
+        "medication_name": "lisinopril",
+        "action": "CONTINUE",
+        "dosage": "10 mg",
+        "frequency": "daily",
+        "route": null,
+        "indication_or_note": null,
+        "confidence": 0.95,
+        "patient_friendly_summary": "Take lisinopril 10 mg daily only if needed.",
+        "source_evidence": {
+          "source_text": "Continue lisinopril 10 mg daily.",
+          "source_section": "Discharge Medications",
+          "source_page": 1
+        }
+      }
+    ],
+    "follow_ups": [],
+    "warning_signs": [],
+    "tasks": [],
+    "provider_matches": []
+  }
+]

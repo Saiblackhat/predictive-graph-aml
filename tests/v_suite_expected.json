@@ -1,0 +1,114 @@
+{
+  "V01": {
+    "expected": "BLOCK",
+    "trap": "dose 2.5 extracted as 5 (substring trap)"
+  },
+  "V02": {
+    "expected": "BLOCK",
+    "trap": "unit mcg extracted as mg"
+  },
+  "V03": {
+    "expected": "BLOCK",
+    "trap": "doses swapped between drugs"
+  },
+  "V04": {
+    "expected": "BLOCK",
+    "trap": "look-alike drug name hydralazine"
+  },
+  "V05": {
+    "expected": "BLOCK",
+    "trap": "conditional higher dose omitted"
+  },
+  "V06": {
+    "expected": "BLOCK",
+    "trap": "duration and stop omitted"
+  },
+  "V07": {
+    "expected": "BLOCK",
+    "trap": "summary drops 'only if needed'"
+  },
+  "V08": {
+    "expected": "BLOCK",
+    "trap": "summary drops 3 lb threshold and one-day window"
+  },
+  "V09": {
+    "expected": "BLOCK",
+    "trap": "emergency warning extracted as ROUTINE"
+  },
+  "V10": {
+    "expected": "BLOCK",
+    "trap": "second drug (stop eplerenone) omitted"
+  },
+  "V11": {
+    "expected": "SAFE",
+    "trap": "FALSE-POSITIVE PROBE: all four items faithful"
+  },
+  "V12": {
+    "expected": "BLOCK",
+    "trap": "later conflicting dose omitted"
+  },
+  "V13": {
+    "expected": "BLOCK_OR_REVIEW",
+    "trap": "range 'in 1 to 2 weeks' extracted as 'within 2 weeks'"
+  },
+  "V14": {
+    "expected": "BLOCK",
+    "trap": "'except warfarin' omitted; follow-up only"
+  },
+  "W01": {
+    "expected": "BLOCK",
+    "trap": "decimal dose 0.125 extracted as 0.25"
+  },
+  "W02": {
+    "expected": "SAFE",
+    "trap": "FALSE-POSITIVE PROBE: two-word drug name, faithful"
+  },
+  "W03": {
+    "expected": "BLOCK",
+    "trap": "'do not stop abruptly' instruction omitted"
+  },
+  "W04": {
+    "expected": "BLOCK",
+    "trap": "HOLD extracted as CONTINUE"
+  },
+  "W05": {
+    "expected": "BLOCK",
+    "trap": "911 seizure warning extracted as ROUTINE"
+  },
+  "W06": {
+    "expected": "BLOCK_OR_REVIEW",
+    "trap": "range lower bound extracted as 'within 2 weeks'"
+  },
+  "W07": {
+    "expected": "SAFE",
+    "trap": "FALSE-POSITIVE PROBE: meal instruction kept in frequency, follow-up faithful"
+  },
+  "W08": {
+    "expected": "BLOCK",
+    "trap": "summary drops 'until' end condition"
+  },
+  "W09": {
+    "expected": "BLOCK",
+    "trap": "qualifier present but wrong number (3 -> 5)"
+  },
+  "W10": {
+    "expected": "BLOCK",
+    "trap": "look-alike drug name clonidine"
+  },
+  "W11": {
+    "expected": "BLOCK",
+    "trap": "explicit date vs relative window must conflict"
+  },
+  "W12": {
+    "expected": "BLOCK",
+    "trap": "qualifier present but wrong direction (more than -> less than)"
+  },
+  "W13": {
+    "expected": "BLOCK",
+    "trap": "summary changes 'within' to 'after'"
+  },
+  "W14": {
+    "expected": "BLOCK",
+    "trap": "'only if needed' attached to wrong drug in summary"
+  }
+}
