@@ -181,9 +181,22 @@ PROVIDER_NAME_RE = re.compile(
     r"\b(Dr\.\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\b"
 )
 
+# Phase 4.1 fix: capture optional time-of-day suffix ("at HH:MM [AM/PM]") on
+# absolute-date patterns so the extracted timeframe contains 'at', matching
+# the 'IN' qualifier that _extract_timeframe_qualifier also sees in the source
+# evidence sentence (which contains "at 10:30 AM").  This eliminates the
+# spurious ON-vs-IN qualifier mismatch without modifying the frozen validator.
 TIMEFRAME_RE = re.compile(
     r"\b((?:within|in|after)\s+(?:about\s+|approximately\s+)?\d+(?:\s*(?:to|-)\s*\d+)?\s*(?:days?|weeks?|months?|hours?)|"
-    r"on\s+(?:\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}|[A-Za-z]{3,9}\s+\d{1,2}(?:,\s*\d{4})?|\d{4}-\d{2}-\d{2}))\b",
+    r"on\s+(?:\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}|[A-Za-z]{3,9}\s+\d{1,2}(?:,\s*\d{4})?|\d{4}-\d{2}-\d{2})"
+    r"(?:\s+at\s+\d{1,2}(?::\d{2})?\s*(?:[AP]M)?)?)",
+    re.IGNORECASE,
+)
+
+# Phase 4.1: extracts time-of-day component from absolute appointment sentences.
+# Supports: '10:30 AM', '10 AM', '14:30', '2 PM'. Returns normalised 24-h string.
+APPT_TIME_RE = re.compile(
+    r"\bat\s+(\d{1,2})(?::(\d{2}))?\s*([AP]M)?",
     re.IGNORECASE,
 )
 
@@ -438,6 +451,20 @@ def _extract_followup_from_sentence(
         ambiguity_notes.append("Follow-up timeframe is missing or approximate.")
 
     confidence = 0.78 if is_ambiguous else 0.96
+    # Phase 4.1: extract time-of-day only when an absolute date is present.
+    appointment_time: Optional[str] = None
+    if timeframe and re.match(r"^on\s+", timeframe, re.IGNORECASE):
+        m_time = APPT_TIME_RE.search(norm)
+        if m_time:
+            hour = int(m_time.group(1))
+            minute = int(m_time.group(2)) if m_time.group(2) else 0
+            meridiem = (m_time.group(3) or "").upper()
+            if meridiem == "PM" and hour != 12:
+                hour += 12
+            elif meridiem == "AM" and hour == 12:
+                hour = 0
+            appointment_time = f"{hour:02d}:{minute:02d}"
+
     return ExtractedFollowUpRecord(
         id=f"fu-{item_index}",
         specialty=specialty,
@@ -445,6 +472,7 @@ def _extract_followup_from_sentence(
         timeframe=timeframe,
         reason=reason,
         appointment_scheduled=appointment_scheduled,
+        appointment_time=appointment_time,
         confidence=confidence,
         is_ambiguous=is_ambiguous,
         ambiguity_note="; ".join(ambiguity_notes) if ambiguity_notes else None,

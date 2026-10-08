@@ -203,6 +203,8 @@ def _build_followup_task(
             "provider_name": fu.provider_name,
             "appointment_scheduled": fu.appointment_scheduled,
             "reason": fu.reason,
+            # Phase 4.1: 24-h time string 'HH:MM' or None
+            "appointment_time": getattr(fu, "appointment_time", None),
         },
     )
 

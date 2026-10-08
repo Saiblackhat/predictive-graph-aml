@@ -203,6 +203,14 @@ class ExtractedFollowUpRecord(StrictSchemaModel):
     timeframe: Optional[str] = Field(default=None, max_length=200)
     reason: Optional[str] = Field(default=None, max_length=1000)
     appointment_scheduled: Optional[bool] = Field(default=None)
+    # Phase 4.1: time-of-day for absolute appointments, e.g. '10:30' or '14:00'.
+    # Stored separately from timeframe so downstream layers can consume it.
+    # None when no time is stated in the source text.
+    appointment_time: Optional[str] = Field(
+        default=None,
+        max_length=20,
+        description="Time-of-day for absolute appointment (24-h HH:MM), or None.",
+    )
     confidence: float = Field(..., ge=0.0, le=1.0)
     is_ambiguous: bool = Field(default=False)
     ambiguity_note: Optional[str] = Field(default=None, max_length=500)
