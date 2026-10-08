@@ -413,12 +413,7 @@ NEW_START_CUE_PATTERN: re.Pattern[str] = re.compile(
 )
 
 CONTINUE_CUE_PATTERN: re.Pattern[str] = re.compile(
-    r"(?<![a-z0-9])(?:continu(?:e|ed|ing)|keep\s+taking|resum(?:e|ed|ing)|remain\s+on|stay\s+on|take\s+(?:your\s+|the\s+)?(?:home|prior|usual)\s+medication|(?:home\s+medications?:?.*\btake\b|\btake\b.*\b(?:as\s+before|home\s+medication|prior\s+to\s+admission|previously|only\s+if\s+needed|as\s+needed\s+for)))(?![a-z0-9])",
-    re.IGNORECASE,
-)
-
-BARE_TAKE_CUE_PATTERN: re.Pattern[str] = re.compile(
-    r"(?<![a-z0-9])take(?![a-z0-9])",
+    r"(?<![a-z0-9])(?:continu(?:e|ed|ing)|tak(?:e|ing)|keep\s+taking|resum(?:e|ed|ing)|remain\s+on|stay\s+on)(?![a-z0-9])",
     re.IGNORECASE,
 )
 
@@ -929,6 +924,46 @@ def _strip_negated_clauses(text: str) -> str:
     return RE_WHITESPACE.sub(" ", cleaned).strip()
 
 
+MEDICATION_SALT_FORMULATION_MODIFIERS: frozenset[str] = frozenset(
+    {
+        "tartrate",
+        "succinate",
+        "besylate",
+        "potassium",
+        "calcium",
+        "sodium",
+        "hcl",
+        "hydrochloride",
+        "sulfate",
+        "bisulfate",
+        "maleate",
+        "fumarate",
+        "mesylate",
+        "acetate",
+        "propionate",
+        "bromide",
+        "chloride",
+        "citrate",
+        "carbonate",
+        "bicarbonate",
+        "glargine",
+        "lispro",
+        "aspart",
+        "detemir",
+        "degludec",
+        "er",
+        "xr",
+        "xl",
+        "sr",
+        "cr",
+        "dr",
+        "ir",
+        "la",
+        "ec",
+    }
+)
+
+
 def resolve_canonical_medication_name(name: str) -> str:
     """Resolve a medication name to its canonical generic identity using the synthetic alias map."""
     norm = canonicalize_text(name)
@@ -941,6 +976,43 @@ def resolve_canonical_medication_name(name: str) -> str:
     if slash_base in SYNTHETIC_DRUG_ALIASES:
         return SYNTHETIC_DRUG_ALIASES[slash_base]
     return base
+
+
+def split_base_and_modifier(name: str) -> tuple[str, str | None]:
+    """Return (canonical_base_drug, salt_or_formulation_modifier_or_none) while preserving the modifier."""
+    canon = resolve_canonical_medication_name(name)
+    if canon in SYNTHETIC_DRUG_ALIASES:
+        return (canon, None)
+    parts = canon.split()
+    if len(parts) >= 2 and parts[-1] in MEDICATION_SALT_FORMULATION_MODIFIERS:
+        base_canon = resolve_canonical_medication_name(" ".join(parts[:-1]))
+        return (base_canon, parts[-1])
+    return (canon, None)
+
+
+def _extract_clause_drug_mentions(clause: str) -> set[tuple[str, str | None]]:
+    """Extract (canonical_base_drug, modifier_or_none) mentions present in a normalized clause."""
+    mentions: set[tuple[str, str | None]] = set()
+    occupied_spans: list[tuple[int, int]] = []
+    for alias, pat in ALL_KNOWN_DRUG_PATTERNS:
+        for m in pat.finditer(clause):
+            s_idx, e_idx = m.span()
+            if any(not (e_idx <= os or s_idx >= oe) for os, oe in occupied_spans):
+                continue
+            base_canon = SYNTHETIC_DRUG_ALIASES[alias]
+            m_mod = re.match(r"\s+([a-z0-9-]+)\b", clause[e_idx:])
+            if (
+                m_mod
+                and m_mod.group(1).casefold() in MEDICATION_SALT_FORMULATION_MODIFIERS
+                and base_canon != "potassium chloride"
+            ):
+                mod_tok = m_mod.group(1).casefold()
+                mentions.add((base_canon, mod_tok))
+                occupied_spans.append((s_idx, e_idx + m_mod.end()))
+            else:
+                mentions.add((base_canon, None))
+                occupied_spans.append((s_idx, e_idx))
+    return mentions
 
 
 def get_medication_equivalents(name: str) -> frozenset[str]:
@@ -2752,6 +2824,48 @@ class SafetyValidator:
                                 )
                                 break
 
+        # Check if discharge text mentions a different salt/formulation modifier on the same base drug
+        base_drug, med_mod = split_base_and_modifier(med.medication_name)
+        doc_mentions = _extract_clause_drug_mentions(doc_without_negations)
+        conflicting_mods = {
+            m_tok
+            for b_canon, m_tok in doc_mentions
+            if b_canon == base_drug and m_tok is not None and m_tok != med_mod
+        }
+        if conflicting_mods:
+            if not any(
+                f.code == HazardCode.MEDICATION_CHANGE_DETECTED for f in med.safety_flags
+            ):
+                med.safety_flags.append(
+                    SafetyFlag(
+                        code=HazardCode.MEDICATION_CHANGE_DETECTED,
+                        severity=HazardSeverity.HIGH,
+                        message=(
+                            f"Different salt/formulation modifier ({sorted(conflicting_mods)}) "
+                            f"detected on base medication '{base_drug}' vs extracted '{med.medication_name}'."
+                        ),
+                        item_id=med.id,
+                        requires_human_review=True,
+                        evidence_snippet=source_quote or None,
+                    )
+                )
+            if med.action == MedicationAction.CONTINUE and not any(
+                f.code == HazardCode.CONFLICTING_INSTRUCTIONS for f in med.safety_flags
+            ):
+                med.safety_flags.append(
+                    SafetyFlag(
+                        code=HazardCode.CONFLICTING_INSTRUCTIONS,
+                        severity=HazardSeverity.CRITICAL,
+                        message=(
+                            f"Conflicting formulation modifier ({sorted(conflicting_mods)}) "
+                            f"for base medication '{base_drug}' while '{med.medication_name}' is marked CONTINUE."
+                        ),
+                        item_id=med.id,
+                        requires_human_review=True,
+                        evidence_snippet=source_quote or None,
+                    )
+                )
+
     def _verify_medication_action_support(
         self,
         med: MedicationInstruction,
@@ -3394,13 +3508,14 @@ class SafetyValidator:
         """Detect conflicts across brand/generic medications and normalized follow-up timeframes."""
         meds_by_canonical: dict[str, list[MedicationInstruction]] = defaultdict(list)
         for med in payload.medications:
-            key = resolve_canonical_medication_name(med.medication_name)
+            key, _ = split_base_and_modifier(med.medication_name)
             meds_by_canonical[key].append(med)
 
         for canonical_name, group in meds_by_canonical.items():
             if len(group) < 2:
                 continue
             actions = {m.action for m in group}
+            modifiers = {split_base_and_modifier(m.medication_name)[1] for m in group}
             dosages = {
                 tuple(parse_doses(m.dosage))
                 if parse_doses(m.dosage or "")
@@ -3415,7 +3530,12 @@ class SafetyValidator:
                 for m in group
                 if not _is_missing_or_unknown(m.frequency)
             }
-            if len(actions) > 1 or len(dosages) > 1 or len(frequencies) > 1:
+            if (
+                len(actions) > 1
+                or len(dosages) > 1
+                or len(frequencies) > 1
+                or len(modifiers) > 1
+            ):
                 for m in group:
                     m.safety_flags.append(
                         SafetyFlag(
@@ -3425,7 +3545,7 @@ class SafetyValidator:
                                 f"Conflicting instructions for medication '{m.medication_name}' "
                                 f"(canonical identity '{canonical_name}'): multiple entries specify "
                                 f"incompatible actions ({[x.action.value for x in group]}), "
-                                f"dosages ({[x.dosage for x in group]}), or frequencies."
+                                f"dosages ({[x.dosage for x in group]}), modifiers, or frequencies."
                             ),
                             item_id=m.id,
                             requires_human_review=True,
@@ -3512,6 +3632,7 @@ class SafetyValidator:
         # Gather verified evidence snippets and extract covered drug identities per medication item
         med_evidence: list[str] = []
         extracted_med_canonicals: set[str] = set()
+        extracted_base_and_mods: set[tuple[str, str | None]] = set()
         extracted_med_equivalents: set[str] = set()
         for med in payload.medications:
             if med.source_evidence and not any(
@@ -3520,6 +3641,9 @@ class SafetyValidator:
                 med_evidence.append(canonicalize_text(med.source_evidence.source_text))
                 extracted_med_canonicals.add(
                     resolve_canonical_medication_name(med.medication_name)
+                )
+                extracted_base_and_mods.add(
+                    split_base_and_modifier(med.medication_name)
                 )
                 extracted_med_equivalents.update(
                     get_medication_equivalents(med.medication_name)
@@ -3633,14 +3757,10 @@ class SafetyValidator:
                     )
                 )
                 if has_sensitive_med_verb:
-                    drugs_in_clause = {
-                        SYNTHETIC_DRUG_ALIASES[alias]
-                        for alias, pat in ALL_KNOWN_DRUG_PATTERNS
-                        if pat.search(clause)
-                    }
-                    if drugs_in_clause:
-                        drug_identity_covered = drugs_in_clause.issubset(
-                            extracted_med_canonicals
+                    clause_drug_mentions = _extract_clause_drug_mentions(clause)
+                    if clause_drug_mentions:
+                        drug_identity_covered = clause_drug_mentions.issubset(
+                            extracted_base_and_mods
                         )
                     elif "home medication" in clause:
                         drug_identity_covered = bool(extracted_med_equivalents)

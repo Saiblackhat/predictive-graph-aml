@@ -1114,7 +1114,7 @@ class TestHeldoutRound2Regressions(unittest.TestCase):
         cls.client = TestClient(app, raise_server_exceptions=False)
 
     def test_all_53_heldout_cases_and_latencies(self) -> None:
-        allow_set = {"H19", "H24", "H25", "H32", "H36"}
+        allow_set = {"H06", "H19", "H24", "H25", "H32", "H36"}
         either_set = {"H21"}
         must_422_set = {"H40a", "H40b"}
 
@@ -1694,7 +1694,7 @@ class TestHeldoutRound2Regressions(unittest.TestCase):
         )
 
     def test_phase3b5_h06_policy_and_medication_continuations(self) -> None:
-        # 1. H06: bare "Take metformin 500 mg BID." mapped to CONTINUE must be NEEDS REVIEW (UNSUPPORTED_FIELD_VALUE)
+        # 1. H06 / R67: "Take metformin 500 mg BID." mapped to CONTINUE is SAFE / ORGANIZED
         raw_h06 = "Take metformin 500 mg BID."
         res_h06 = self.client.post(
             "/api/v1/validate",
@@ -1715,11 +1715,10 @@ class TestHeldoutRound2Regressions(unittest.TestCase):
         )
         self.assertEqual(res_h06.status_code, 200)
         d_h06 = res_h06.json()
-        self.assertEqual(d_h06["overall_safety_status"], "NEEDS REVIEW")
-        self.assertFalse(d_h06["patient_releasable"])
-        self.assertTrue(d_h06["requires_human_review"])
-        self.assertIn("UNSUPPORTED_FIELD_VALUE", d_h06["hazard_codes_detected"])
-        self.assertTrue(d_h06["validated_payload"]["medications"][0]["release_blocked"])
+        self.assertEqual(d_h06["overall_safety_status"], "SAFE / ORGANIZED")
+        self.assertTrue(d_h06["patient_releasable"])
+        self.assertFalse(d_h06["requires_human_review"])
+        self.assertEqual(d_h06["hazard_codes_detected"], [])
 
         # 2. SAFE existing-medication example (explicit continuation cue)
         raw_existing_1 = "Continue home medication metformin 500 mg twice daily."
@@ -1797,6 +1796,163 @@ class TestHeldoutRound2Regressions(unittest.TestCase):
         self.assertFalse(d_new["patient_releasable"])
         self.assertTrue(d_new["requires_human_review"])
         self.assertIn("STOP_START_MEDICATION", d_new["hazard_codes_detected"])
+
+    def test_round3_r65_to_r69_focused_regressions(self) -> None:
+        # R65: Warning threshold dropped -> BLOCK (NEEDS REVIEW)
+        res_r65 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "R65",
+                "patient_identifier": "PT-R65",
+                "raw_discharge_text": "Call your doctor if your temperature is greater than 101.5 F.",
+                "warning_signs": [
+                    {
+                        "id": "warn-1",
+                        "symptom_description": "temperature is greater than 101.5 F",
+                        "urgency": "SOON",
+                        "action_to_take": "Call your doctor",
+                        "confidence": 0.95,
+                        "patient_friendly_summary": "Call your doctor if your temperature rises.",
+                        "source_evidence": {
+                            "source_text": "Call your doctor if your temperature is greater than 101.5 F.",
+                            "source_section": "Warning Signs",
+                            "source_page": 1,
+                        },
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_r65.status_code, 200)
+        d_r65 = res_r65.json()
+        self.assertFalse(d_r65["patient_releasable"])
+        self.assertTrue(d_r65["requires_human_review"])
+        self.assertEqual(d_r65["overall_safety_status"], "NEEDS REVIEW")
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", d_r65["hazard_codes_detected"])
+
+        # R66: Warning threshold omission variant -> BLOCK (NEEDS REVIEW)
+        res_r66 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "R66",
+                "patient_identifier": "PT-R66",
+                "raw_discharge_text": "Call your doctor if your temperature is greater than 101.5 F.",
+                "warning_signs": [
+                    {
+                        "id": "warn-1",
+                        "symptom_description": "temperature",
+                        "urgency": "ROUTINE",
+                        "action_to_take": "Call your doctor",
+                        "confidence": 0.95,
+                        "patient_friendly_summary": "Call your doctor if you have a temperature.",
+                        "source_evidence": {
+                            "source_text": "Call your doctor if your temperature is greater than 101.5 F.",
+                            "source_section": "Warning Signs",
+                            "source_page": 1,
+                        },
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_r66.status_code, 200)
+        d_r66 = res_r66.json()
+        self.assertFalse(d_r66["patient_releasable"])
+        self.assertTrue(d_r66["requires_human_review"])
+        self.assertEqual(d_r66["overall_safety_status"], "NEEDS REVIEW")
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", d_r66["hazard_codes_detected"])
+
+        # R67: "Take metformin 500 mg BID." -> ALLOW (SAFE / ORGANIZED)
+        res_r67 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "R67",
+                "patient_identifier": "PT-R67",
+                "raw_discharge_text": "Take metformin 500 mg BID.",
+                "medications": [
+                    {
+                        "id": "med-1",
+                        "medication_name": "metformin",
+                        "action": "CONTINUE",
+                        "dosage": "500 mg",
+                        "frequency": "twice daily",
+                        "confidence": 0.95,
+                        "source_evidence": {
+                            "source_text": "Take metformin 500 mg BID.",
+                            "source_section": "Discharge Medications",
+                            "source_page": 1,
+                        },
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_r67.status_code, 200)
+        d_r67 = res_r67.json()
+        self.assertTrue(d_r67["patient_releasable"])
+        self.assertFalse(d_r67["requires_human_review"])
+        self.assertEqual(d_r67["overall_safety_status"], "SAFE / ORGANIZED")
+        self.assertEqual(d_r67["hazard_codes_detected"], [])
+
+        # R68: "Continue metoprolol tartrate 25 mg by mouth twice daily." -> ALLOW (SAFE / ORGANIZED)
+        res_r68 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "R68",
+                "patient_identifier": "PT-R68",
+                "raw_discharge_text": "Continue metoprolol tartrate 25 mg by mouth twice daily.",
+                "medications": [
+                    {
+                        "id": "med-1",
+                        "medication_name": "metoprolol tartrate",
+                        "action": "CONTINUE",
+                        "dosage": "25 mg",
+                        "frequency": "twice daily",
+                        "route": "by mouth",
+                        "confidence": 0.95,
+                        "source_evidence": {
+                            "source_text": "Continue metoprolol tartrate 25 mg by mouth twice daily.",
+                            "source_section": "Discharge Medications",
+                            "source_page": 1,
+                        },
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_r68.status_code, 200)
+        d_r68 = res_r68.json()
+        self.assertTrue(d_r68["patient_releasable"])
+        self.assertFalse(d_r68["requires_human_review"])
+        self.assertEqual(d_r68["overall_safety_status"], "SAFE / ORGANIZED")
+        self.assertEqual(d_r68["hazard_codes_detected"], [])
+
+        # R69: "Switch from metoprolol tartrate 25 mg to metoprolol succinate 50 mg once daily." -> BLOCK
+        res_r69 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "R69",
+                "patient_identifier": "PT-R69",
+                "raw_discharge_text": "Switch from metoprolol tartrate 25 mg to metoprolol succinate 50 mg once daily.",
+                "medications": [
+                    {
+                        "id": "med-1",
+                        "medication_name": "metoprolol succinate",
+                        "action": "CONTINUE",
+                        "dosage": "50 mg",
+                        "frequency": "once daily",
+                        "confidence": 0.95,
+                        "source_evidence": {
+                            "source_text": "Switch from metoprolol tartrate 25 mg to metoprolol succinate 50 mg once daily.",
+                            "source_section": "Discharge Medications",
+                            "source_page": 1,
+                        },
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_r69.status_code, 200)
+        d_r69 = res_r69.json()
+        self.assertFalse(d_r69["patient_releasable"])
+        self.assertTrue(d_r69["requires_human_review"])
+        self.assertNotEqual(d_r69["overall_safety_status"], "SAFE / ORGANIZED")
+        self.assertIn("MEDICATION_CHANGE_DETECTED", d_r69["hazard_codes_detected"])
 
     def test_phase3b5_live_http_422_endpoint_verification(self) -> None:
         # POST raw JSON payloads directly to /api/v1/validate without client-side Pydantic instantiation
