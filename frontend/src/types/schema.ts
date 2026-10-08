@@ -59,7 +59,8 @@ export type HazardCode =
   | "UNSUPPORTED_FIELD_VALUE"
   | "OMITTED_INSTRUCTION"
   | "INCOMPLETE_EXTRACTION"
-  | "DUPLICATE_ITEM";
+  | "DUPLICATE_ITEM"
+  | "SUSPICIOUS_TEXT_ENCODING";
 
 export type HazardSeverity = "INFO" | "WARNING" | "HIGH" | "CRITICAL";
 
@@ -96,8 +97,10 @@ export interface ExtractedItemBase {
   readonly confidence: number;
   readonly safety_status: SafetyStatus;
   readonly review_status: ReviewDecisionStatus;
+  readonly release_blocked?: boolean;
   readonly safety_flags: readonly SafetyFlag[];
   readonly patient_friendly_summary: string | null;
+  readonly provider_claim_note?: string | null;
 }
 
 export interface MedicationInstruction extends ExtractedItemBase {
@@ -163,6 +166,7 @@ export interface ValidationReport {
   readonly overall_safety_status: SafetyStatus;
   readonly requires_human_review: boolean;
   readonly patient_releasable: boolean;
+  readonly payload_sha256?: string;
   readonly total_flags: number;
   readonly hazard_codes_detected: readonly HazardCode[];
   readonly validated_payload: DischargeExtractionPayload;

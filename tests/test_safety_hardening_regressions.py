@@ -622,7 +622,7 @@ class TestSafetyHardeningRegressions(unittest.TestCase):
         normal_report = validate_discharge_payload(build_normal_case())
         self.assertTrue(normal_report.patient_releasable)
         self.assertTrue(is_patient_releasable(normal_report))
-        self.assertTrue(is_patient_releasable(normal_report.validated_payload))
+        self.assertFalse(is_patient_releasable(normal_report.validated_payload))
 
         # Verify null span reports explicit note and unverified page flag
         med_ev = normal_report.validated_payload.medications[0].source_evidence
