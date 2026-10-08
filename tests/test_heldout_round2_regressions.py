@@ -1114,7 +1114,7 @@ class TestHeldoutRound2Regressions(unittest.TestCase):
         cls.client = TestClient(app, raise_server_exceptions=False)
 
     def test_all_53_heldout_cases_and_latencies(self) -> None:
-        allow_set = {"H06", "H19", "H24", "H25", "H32", "H36"}
+        allow_set = {"H19", "H24", "H25", "H32", "H36"}
         either_set = {"H21"}
         must_422_set = {"H40a", "H40b"}
 
@@ -1692,6 +1692,453 @@ class TestHeldoutRound2Regressions(unittest.TestCase):
         self.assertIn(
             HazardCode.UNSUPPORTED_PROVIDER_CLAIM, rep_extra.hazard_codes_detected
         )
+
+    def test_phase3b5_h06_policy_and_medication_continuations(self) -> None:
+        # 1. H06: bare "Take metformin 500 mg BID." mapped to CONTINUE must be NEEDS REVIEW (UNSUPPORTED_FIELD_VALUE)
+        raw_h06 = "Take metformin 500 mg BID."
+        res_h06 = self.client.post(
+            "/api/v1/validate",
+            json=_payload(
+                raw_h06,
+                meds=[
+                    _med(
+                        "med-h06",
+                        "metformin",
+                        "CONTINUE",
+                        "500mg",
+                        "twice daily",
+                        None,
+                        raw_h06,
+                    )
+                ],
+            ),
+        )
+        self.assertEqual(res_h06.status_code, 200)
+        d_h06 = res_h06.json()
+        self.assertEqual(d_h06["overall_safety_status"], "NEEDS REVIEW")
+        self.assertFalse(d_h06["patient_releasable"])
+        self.assertTrue(d_h06["requires_human_review"])
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", d_h06["hazard_codes_detected"])
+        self.assertTrue(d_h06["validated_payload"]["medications"][0]["release_blocked"])
+
+        # 2. SAFE existing-medication example (explicit continuation cue)
+        raw_existing_1 = "Continue home medication metformin 500 mg twice daily."
+        res_ex1 = self.client.post(
+            "/api/v1/validate",
+            json=_payload(
+                raw_existing_1,
+                meds=[
+                    _med(
+                        "med-ex1",
+                        "metformin",
+                        "CONTINUE",
+                        "500 mg",
+                        "twice daily",
+                        None,
+                        raw_existing_1,
+                    )
+                ],
+            ),
+        )
+        self.assertEqual(res_ex1.status_code, 200)
+        d_ex1 = res_ex1.json()
+        self.assertEqual(d_ex1["overall_safety_status"], "SAFE / ORGANIZED")
+        self.assertTrue(d_ex1["patient_releasable"])
+        self.assertFalse(d_ex1["requires_human_review"])
+        self.assertEqual(d_ex1["hazard_codes_detected"], [])
+
+        # 2b. SAFE existing-medication example ("Take" with prior-therapy context)
+        raw_existing_2 = "Take home medication metformin 500 mg twice daily as before."
+        res_ex2 = self.client.post(
+            "/api/v1/validate",
+            json=_payload(
+                raw_existing_2,
+                meds=[
+                    _med(
+                        "med-ex2",
+                        "metformin",
+                        "CONTINUE",
+                        "500 mg",
+                        "twice daily",
+                        None,
+                        raw_existing_2,
+                    )
+                ],
+            ),
+        )
+        self.assertEqual(res_ex2.status_code, 200)
+        d_ex2 = res_ex2.json()
+        self.assertEqual(d_ex2["overall_safety_status"], "SAFE / ORGANIZED")
+        self.assertTrue(d_ex2["patient_releasable"])
+        self.assertEqual(d_ex2["hazard_codes_detected"], [])
+
+        # 3. Newly started medication example ("Start metformin 500 mg twice daily." -> STOP_START_MEDICATION)
+        raw_new = "Start metformin 500 mg twice daily."
+        res_new = self.client.post(
+            "/api/v1/validate",
+            json=_payload(
+                raw_new,
+                meds=[
+                    _med(
+                        "med-new",
+                        "metformin",
+                        "NEW_START",
+                        "500 mg",
+                        "twice daily",
+                        None,
+                        raw_new,
+                    )
+                ],
+            ),
+        )
+        self.assertEqual(res_new.status_code, 200)
+        d_new = res_new.json()
+        self.assertEqual(d_new["overall_safety_status"], "NEEDS REVIEW")
+        self.assertFalse(d_new["patient_releasable"])
+        self.assertTrue(d_new["requires_human_review"])
+        self.assertIn("STOP_START_MEDICATION", d_new["hazard_codes_detected"])
+
+    def test_phase3b5_live_http_422_endpoint_verification(self) -> None:
+        # POST raw JSON payloads directly to /api/v1/validate without client-side Pydantic instantiation
+        raw_cases = {
+            "H29b": {
+                "case_id": "H29b",
+                "patient_identifier": "PT-H29b",
+                "raw_discharge_text": "Continue aspirin 81 mg daily.",
+                "medications": [
+                    {
+                        "id": "med-1",
+                        "medication_name": "aspirin",
+                        "action": "CONTINUE",
+                        "dosage": "81 mg",
+                        "frequency": "daily",
+                        "confidence": 0.95,
+                        "source_evidence": {
+                            "source_text": "Continue aspirin 81 mg daily.",
+                            "start_char": 20,
+                            "end_char": 5,
+                        },
+                    }
+                ],
+            },
+            "H40a": {
+                "case_id": "H40a",
+                "patient_identifier": "PT-H40a",
+                "raw_discharge_text": "Continue aspirin 81 mg daily.",
+                "medications": [
+                    {
+                        "id": "med-1",
+                        "medication_name": "aspirin",
+                        "action": "CONTINUE",
+                        "dosage": "81 mg",
+                        "frequency": "daily",
+                        "confidence": 1.5,
+                        "source_evidence": {
+                            "source_text": "Continue aspirin 81 mg daily."
+                        },
+                    }
+                ],
+            },
+            "H40b": {
+                "case_id": "H40b",
+                "patient_identifier": "PT-H40b",
+                "raw_discharge_text": "Continue aspirin 81 mg daily.",
+                "medications": [
+                    {
+                        "id": "med-1",
+                        "medication_name": "aspirin",
+                        "action": "CONTINUE",
+                        "dosage": "81 mg",
+                        "frequency": "daily",
+                        "confidence": -0.1,
+                        "source_evidence": {
+                            "source_text": "Continue aspirin 81 mg daily."
+                        },
+                    }
+                ],
+            },
+            "H40c": {
+                "case_id": "H40c",
+                "patient_identifier": "PT-H40c",
+                "raw_discharge_text": "Continue aspirin 81 mg daily.",
+                "medications": [
+                    {
+                        "id": "med-1",
+                        "medication_name": "aspirin",
+                        "action": "CONTINUE",
+                        "dosage": "81 mg",
+                        "frequency": "daily",
+                        "confidence": 0.95,
+                        "source_evidence": {"source_text": "   "},
+                    }
+                ],
+            },
+        }
+        for cid, raw_body in raw_cases.items():
+            res = self.client.post("/api/v1/validate", json=raw_body)
+            self.assertEqual(
+                res.status_code,
+                422,
+                f"Live HTTP POST for {cid} must return 422, got {res.status_code}",
+            )
+            detail = res.json().get("detail", [])
+            self.assertTrue(len(detail) > 0, f"{cid} 422 response must include detail")
+
+    def test_phase3b5_large_raw_text_50kb_200kb_1mb_performance(self) -> None:
+        # Semantically adversarial multi-clause clinical narrative filler + target conflicting clauses
+        adv_block = (
+            "Hospital Course Note: Patient evaluated for blood pressure and glycemic control. "
+            "Prior outpatient clinic notes reviewed; home regimen history discussed with pharmacy. "
+        )
+        target_clause = (
+            "Continue lisinopril 10 mg by mouth once daily. "
+            "Stop lisinopril 10 mg daily immediately due to hyperkalemia. "
+        )
+        # ~50 KB (50,000 bytes)
+        pad_50k = adv_block * ((50_000 - len(target_clause)) // len(adv_block))
+        raw_50k = pad_50k + target_clause
+        res_50k = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "PERF-50KB",
+                "patient_identifier": "PT-50KB",
+                "raw_discharge_text": raw_50k,
+                "medications": [
+                    {
+                        "id": "med-50k",
+                        "medication_name": "lisinopril",
+                        "action": "CONTINUE",
+                        "dosage": "10 mg",
+                        "frequency": "once daily",
+                        "route": "by mouth",
+                        "confidence": 0.95,
+                        "source_evidence": {
+                            "source_text": "Continue lisinopril 10 mg by mouth once daily."
+                        },
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_50k.status_code, 200)
+        d_50k = res_50k.json()
+        self.assertFalse(d_50k["patient_releasable"])
+        self.assertIn("CONFLICTING_INSTRUCTIONS", d_50k["hazard_codes_detected"])
+
+        # ~200 KB (200,000 bytes, within 204,800-byte limit)
+        pad_200k = adv_block * ((200_000 - len(target_clause)) // len(adv_block))
+        raw_200k = pad_200k + target_clause
+        res_200k = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "PERF-200KB",
+                "patient_identifier": "PT-200KB",
+                "raw_discharge_text": raw_200k,
+                "medications": [
+                    {
+                        "id": "med-200k",
+                        "medication_name": "lisinopril",
+                        "action": "CONTINUE",
+                        "dosage": "10 mg",
+                        "frequency": "once daily",
+                        "route": "by mouth",
+                        "confidence": 0.95,
+                        "source_evidence": {
+                            "source_text": "Continue lisinopril 10 mg by mouth once daily."
+                        },
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_200k.status_code, 200)
+        d_200k = res_200k.json()
+        self.assertFalse(d_200k["patient_releasable"])
+        self.assertIn("CONFLICTING_INSTRUCTIONS", d_200k["hazard_codes_detected"])
+
+        # ~1 MB (1,048,576 bytes, exceeds 204,800-byte cap -> HTTP 413)
+        pad_1mb = adv_block * ((1_048_576 - len(target_clause)) // len(adv_block))
+        raw_1mb = pad_1mb + target_clause
+        res_1mb = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "PERF-1MB",
+                "patient_identifier": "PT-1MB",
+                "raw_discharge_text": raw_1mb,
+                "medications": [],
+            },
+        )
+        self.assertEqual(res_1mb.status_code, 413)
+
+    def test_phase3b5_non_null_patient_friendly_summaries(self) -> None:
+        # Case A: Simple medication instruction (SAFE with non-null patient_friendly_summary)
+        raw_a = "Continue atorvastatin 40 mg by mouth once daily."
+        res_a = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "PFS-SAFE-A",
+                "patient_identifier": "PT-PFS-A",
+                "raw_discharge_text": raw_a,
+                "medications": [
+                    {
+                        "id": "med-pfs-a",
+                        "medication_name": "atorvastatin",
+                        "action": "CONTINUE",
+                        "dosage": "40 mg",
+                        "frequency": "once daily",
+                        "route": "by mouth",
+                        "confidence": 0.98,
+                        "patient_friendly_summary": "Continue taking atorvastatin 40 mg by mouth once daily.",
+                        "source_evidence": {"source_text": raw_a},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_a.status_code, 200)
+        da = res_a.json()
+        self.assertEqual(da["overall_safety_status"], "SAFE / ORGANIZED")
+        self.assertTrue(da["patient_releasable"])
+        self.assertEqual(da["hazard_codes_detected"], [])
+
+        # Case B: Follow-up instruction (SAFE with non-null patient_friendly_summary)
+        raw_b = "Follow up with Cardiology within 7 days."
+        res_b = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "PFS-SAFE-B",
+                "patient_identifier": "PT-PFS-B",
+                "raw_discharge_text": raw_b,
+                "follow_ups": [
+                    {
+                        "id": "fu-pfs-b",
+                        "specialty": "Cardiology",
+                        "timeframe": "within 7 days",
+                        "confidence": 0.97,
+                        "patient_friendly_summary": "Schedule a follow up appointment with Cardiology within 7 days.",
+                        "source_evidence": {"source_text": raw_b},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_b.status_code, 200)
+        db = res_b.json()
+        self.assertEqual(db["overall_safety_status"], "SAFE / ORGANIZED")
+        self.assertTrue(db["patient_releasable"])
+        self.assertEqual(db["hazard_codes_detected"], [])
+
+        # Case C: Multi-item safe discharge (SAFE with non-null patient_friendly_summary on all items)
+        raw_c = (
+            "Continue lisinopril 10 mg by mouth once daily. "
+            "Follow up with Primary Care in 2 weeks."
+        )
+        res_c = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "PFS-SAFE-C",
+                "patient_identifier": "PT-PFS-C",
+                "raw_discharge_text": raw_c,
+                "medications": [
+                    {
+                        "id": "med-pfs-c",
+                        "medication_name": "lisinopril",
+                        "action": "CONTINUE",
+                        "dosage": "10 mg",
+                        "frequency": "once daily",
+                        "route": "by mouth",
+                        "confidence": 0.98,
+                        "patient_friendly_summary": "Continue taking lisinopril 10 mg by mouth once daily.",
+                        "source_evidence": {
+                            "source_text": "Continue lisinopril 10 mg by mouth once daily."
+                        },
+                    }
+                ],
+                "follow_ups": [
+                    {
+                        "id": "fu-pfs-c",
+                        "specialty": "Primary Care",
+                        "timeframe": "in 2 weeks",
+                        "confidence": 0.97,
+                        "patient_friendly_summary": "Follow up with Primary Care in 2 weeks.",
+                        "source_evidence": {
+                            "source_text": "Follow up with Primary Care in 2 weeks."
+                        },
+                    }
+                ],
+                "tasks": [
+                    {
+                        "id": "tk-pfs-c",
+                        "category": "FOLLOW_UP",
+                        "title": "Follow up with Primary Care",
+                        "due_window": "in 2 weeks",
+                        "linked_item_id": "fu-pfs-c",
+                        "confidence": 0.96,
+                        "patient_friendly_summary": "Follow up with Primary Care in 2 weeks.",
+                        "source_evidence": {
+                            "source_text": "Follow up with Primary Care in 2 weeks."
+                        },
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_c.status_code, 200)
+        dc = res_c.json()
+        self.assertEqual(dc["overall_safety_status"], "SAFE / ORGANIZED")
+        self.assertTrue(dc["patient_releasable"])
+        self.assertEqual(dc["hazard_codes_detected"], [])
+
+        # Case D: Warning-sign text directly supported by source (ROUTINE non-emergent symptom)
+        raw_d = "Monitor for mild ankle swelling and call Primary Care clinic if noted."
+        res_d = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "PFS-SAFE-D",
+                "patient_identifier": "PT-PFS-D",
+                "raw_discharge_text": raw_d,
+                "warning_signs": [
+                    {
+                        "id": "ws-pfs-d",
+                        "symptom_description": "mild ankle swelling",
+                        "urgency": "ROUTINE",
+                        "action_to_take": "call Primary Care clinic",
+                        "confidence": 0.96,
+                        "patient_friendly_summary": "Monitor for mild ankle swelling and call Primary Care clinic.",
+                        "source_evidence": {"source_text": raw_d},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_d.status_code, 200)
+        dd = res_d.json()
+        self.assertEqual(dd["overall_safety_status"], "SAFE / ORGANIZED")
+        self.assertTrue(dd["patient_releasable"])
+        self.assertEqual(dd["hazard_codes_detected"], [])
+
+        # Case E (Blocked): Intentionally fabricated patient_friendly_summary
+        res_e = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "PFS-FAB-E",
+                "patient_identifier": "PT-PFS-E",
+                "raw_discharge_text": raw_a,
+                "medications": [
+                    {
+                        "id": "med-pfs-e",
+                        "medication_name": "atorvastatin",
+                        "action": "CONTINUE",
+                        "dosage": "40 mg",
+                        "frequency": "once daily",
+                        "route": "by mouth",
+                        "confidence": 0.98,
+                        "patient_friendly_summary": "Continue taking atorvastatin 40 mg at bedtime with grapefruit juice to prevent stroke.",
+                        "source_evidence": {"source_text": raw_a},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_e.status_code, 200)
+        de = res_e.json()
+        self.assertFalse(de["patient_releasable"])
+        self.assertTrue(de["requires_human_review"])
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", de["hazard_codes_detected"])
+
 
 
 def print_heldout_round2_table() -> None:

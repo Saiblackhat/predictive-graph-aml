@@ -1,0 +1,337 @@
+[
+  {
+    "case_id": "C01",
+    "description": "1. Multi-medication SAFE note",
+    "payload": {
+      "case_id": "C01",
+      "patient_identifier": "PT-C01",
+      "raw_discharge_text": "Continue lisinopril 10 mg by mouth once daily. Continue atorvastatin 40 mg by mouth once daily.",
+      "medications": [
+        {
+          "id": "med-c01-1",
+          "medication_name": "lisinopril",
+          "action": "CONTINUE",
+          "dosage": "10 mg",
+          "frequency": "once daily",
+          "route": "by mouth",
+          "confidence": 0.98,
+          "patient_friendly_summary": "Continue taking lisinopril 10 mg by mouth once daily.",
+          "source_evidence": {
+            "source_text": "Continue lisinopril 10 mg by mouth once daily.",
+            "source_section": "Discharge Medications",
+            "source_page": 1
+          }
+        },
+        {
+          "id": "med-c01-2",
+          "medication_name": "atorvastatin",
+          "action": "CONTINUE",
+          "dosage": "40 mg",
+          "frequency": "once daily",
+          "route": "by mouth",
+          "confidence": 0.98,
+          "patient_friendly_summary": "Continue taking atorvastatin 40 mg by mouth once daily.",
+          "source_evidence": {
+            "source_text": "Continue atorvastatin 40 mg by mouth once daily.",
+            "source_section": "Discharge Medications",
+            "source_page": 1
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warning_signs": [],
+      "tasks": [],
+      "provider_matches": []
+    }
+  },
+  {
+    "case_id": "C02",
+    "description": "2. 'Do not stop X' negation",
+    "payload": {
+      "case_id": "C02",
+      "patient_identifier": "PT-C02",
+      "raw_discharge_text": "Do not stop clopidogrel 75 mg by mouth once daily.",
+      "medications": [
+        {
+          "id": "med-c02",
+          "medication_name": "clopidogrel",
+          "action": "CONTINUE",
+          "dosage": "75 mg",
+          "frequency": "once daily",
+          "route": "by mouth",
+          "confidence": 0.97,
+          "patient_friendly_summary": "Continue clopidogrel 75 mg by mouth once daily.",
+          "source_evidence": {
+            "source_text": "Do not stop clopidogrel 75 mg by mouth once daily.",
+            "source_section": "Discharge Medications",
+            "source_page": 1
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warning_signs": [],
+      "tasks": [],
+      "provider_matches": []
+    }
+  },
+  {
+    "case_id": "C03",
+    "description": "3. Medication outside current synthetic alias lexicon",
+    "payload": {
+      "case_id": "C03",
+      "patient_identifier": "PT-C03",
+      "raw_discharge_text": "Continue dapagliflozin 10 mg by mouth once daily.",
+      "medications": [
+        {
+          "id": "med-c03",
+          "medication_name": "dapagliflozin",
+          "action": "CONTINUE",
+          "dosage": "10 mg",
+          "frequency": "once daily",
+          "route": "by mouth",
+          "confidence": 0.97,
+          "patient_friendly_summary": "Continue taking dapagliflozin 10 mg by mouth once daily.",
+          "source_evidence": {
+            "source_text": "Continue dapagliflozin 10 mg by mouth once daily.",
+            "source_section": "Discharge Medications",
+            "source_page": 1
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warning_signs": [],
+      "tasks": [],
+      "provider_matches": []
+    }
+  },
+  {
+    "case_id": "C04",
+    "description": "4. Bare 'Take X' with no prior therapy",
+    "payload": {
+      "case_id": "C04",
+      "patient_identifier": "PT-C04",
+      "raw_discharge_text": "Take empagliflozin 10 mg once daily.",
+      "medications": [
+        {
+          "id": "med-c04",
+          "medication_name": "empagliflozin",
+          "action": "CONTINUE",
+          "dosage": "10 mg",
+          "frequency": "once daily",
+          "route": null,
+          "confidence": 0.95,
+          "patient_friendly_summary": null,
+          "source_evidence": {
+            "source_text": "Take empagliflozin 10 mg once daily.",
+            "source_section": "Discharge Medications",
+            "source_page": 1
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warning_signs": [],
+      "tasks": [],
+      "provider_matches": []
+    }
+  },
+  {
+    "case_id": "C05",
+    "description": "5. Existing medication explicitly continued",
+    "payload": {
+      "case_id": "C05",
+      "patient_identifier": "PT-C05",
+      "raw_discharge_text": "Take home medication metformin 500 mg by mouth twice daily as before.",
+      "medications": [
+        {
+          "id": "med-c05",
+          "medication_name": "metformin",
+          "action": "CONTINUE",
+          "dosage": "500 mg",
+          "frequency": "twice daily",
+          "route": "by mouth",
+          "confidence": 0.98,
+          "patient_friendly_summary": "Continue taking metformin 500 mg by mouth twice daily.",
+          "source_evidence": {
+            "source_text": "Take home medication metformin 500 mg by mouth twice daily as before.",
+            "source_section": "Discharge Medications",
+            "source_page": 1
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warning_signs": [],
+      "tasks": [],
+      "provider_matches": []
+    }
+  },
+  {
+    "case_id": "C06",
+    "description": "6. Neutral provider listing",
+    "payload": {
+      "case_id": "C06",
+      "patient_identifier": "PT-C06",
+      "raw_discharge_text": "Follow up with Endocrinology within 14 days.",
+      "medications": [],
+      "follow_ups": [
+        {
+          "id": "fu-c06",
+          "specialty": "Endocrinology",
+          "timeframe": "within 14 days",
+          "confidence": 0.96,
+          "patient_friendly_summary": "Follow up with Endocrinology within 14 days.",
+          "source_evidence": {
+            "source_text": "Follow up with Endocrinology within 14 days.",
+            "source_section": "Follow-Up Plan",
+            "source_page": 1
+          }
+        }
+      ],
+      "warning_signs": [],
+      "tasks": [],
+      "provider_matches": [
+        {
+          "provider_id": "prov-c06",
+          "name": "Dr. Maya Patel, MD",
+          "specialty": "Endocrinology",
+          "facility": "Bayview Endocrine Clinic",
+          "distance_miles": 4.1,
+          "accepts_new_patients_listed": true,
+          "verification_disclaimer": "Synthetic directory listing only. CAREBRIDGE does not guarantee provider suitability, insurance network coverage, or appointment availability."
+        }
+      ]
+    }
+  },
+  {
+    "case_id": "C07",
+    "description": "7. Provider suitability claim",
+    "payload": {
+      "case_id": "C07",
+      "patient_identifier": "PT-C07",
+      "raw_discharge_text": "Follow up with Endocrinology within 14 days.",
+      "medications": [],
+      "follow_ups": [
+        {
+          "id": "fu-c07",
+          "specialty": "Endocrinology",
+          "timeframe": "within 14 days",
+          "confidence": 0.96,
+          "patient_friendly_summary": "Follow up with Endocrinology within 14 days.",
+          "source_evidence": {
+            "source_text": "Follow up with Endocrinology within 14 days.",
+            "source_section": "Follow-Up Plan",
+            "source_page": 1
+          }
+        }
+      ],
+      "warning_signs": [],
+      "tasks": [],
+      "provider_matches": [
+        {
+          "provider_id": "prov-c07",
+          "name": "Dr. Maya Patel, MD",
+          "specialty": "Endocrinology",
+          "facility": "Bayview Endocrine Clinic",
+          "distance_miles": 4.1,
+          "accepts_new_patients_listed": true,
+          "verification_disclaimer": "Clinically ideal specialist guaranteed to manage your diabetes."
+        }
+      ]
+    }
+  },
+  {
+    "case_id": "C08",
+    "description": "8. Duplicate follow-up",
+    "payload": {
+      "case_id": "C08",
+      "patient_identifier": "PT-C08",
+      "raw_discharge_text": "Follow up with Cardiology within 7 days.",
+      "medications": [],
+      "follow_ups": [
+        {
+          "id": "fu-c08-1",
+          "specialty": "Cardiology",
+          "timeframe": "within 7 days",
+          "confidence": 0.96,
+          "patient_friendly_summary": null,
+          "source_evidence": {
+            "source_text": "Follow up with Cardiology within 7 days.",
+            "source_section": "Follow-Up Plan",
+            "source_page": 1
+          }
+        },
+        {
+          "id": "fu-c08-2",
+          "specialty": "Cardiology",
+          "timeframe": "within 7 days",
+          "confidence": 0.96,
+          "patient_friendly_summary": null,
+          "source_evidence": {
+            "source_text": "Follow up with Cardiology within 7 days.",
+            "source_section": "Follow-Up Plan",
+            "source_page": 1
+          }
+        }
+      ],
+      "warning_signs": [],
+      "tasks": [],
+      "provider_matches": []
+    }
+  },
+  {
+    "case_id": "C09",
+    "description": "9. Timeframe qualifier difference",
+    "payload": {
+      "case_id": "C09",
+      "patient_identifier": "PT-C09",
+      "raw_discharge_text": "Follow up with Neurology after 2 weeks.",
+      "medications": [],
+      "follow_ups": [
+        {
+          "id": "fu-c09",
+          "specialty": "Neurology",
+          "timeframe": "within 2 weeks",
+          "confidence": 0.95,
+          "patient_friendly_summary": null,
+          "source_evidence": {
+            "source_text": "Follow up with Neurology after 2 weeks.",
+            "source_section": "Follow-Up Plan",
+            "source_page": 1
+          }
+        }
+      ],
+      "warning_signs": [],
+      "tasks": [],
+      "provider_matches": []
+    }
+  },
+  {
+    "case_id": "C10",
+    "description": "10. Fabricated patient-friendly summary",
+    "payload": {
+      "case_id": "C10",
+      "patient_identifier": "PT-C10",
+      "raw_discharge_text": "Continue aspirin 81 mg by mouth once daily.",
+      "medications": [
+        {
+          "id": "med-c10",
+          "medication_name": "aspirin",
+          "action": "CONTINUE",
+          "dosage": "81 mg",
+          "frequency": "once daily",
+          "route": "by mouth",
+          "confidence": 0.98,
+          "patient_friendly_summary": "Continue taking aspirin 81 mg by mouth once daily with food to prevent ulcers.",
+          "source_evidence": {
+            "source_text": "Continue aspirin 81 mg by mouth once daily.",
+            "source_section": "Discharge Medications",
+            "source_page": 1
+          }
+        }
+      ],
+      "follow_ups": [],
+      "warning_signs": [],
+      "tasks": [],
+      "provider_matches": []
+    }
+  }
+]

@@ -409,7 +409,12 @@ NEW_START_CUE_PATTERN: re.Pattern[str] = re.compile(
 )
 
 CONTINUE_CUE_PATTERN: re.Pattern[str] = re.compile(
-    r"(?<![a-z0-9])(?:continu(?:e|ed|ing)|keep\s+taking|take|resum(?:e|ed|ing))(?![a-z0-9])",
+    r"(?<![a-z0-9])(?:continu(?:e|ed|ing)|keep\s+taking|resum(?:e|ed|ing)|remain\s+on|stay\s+on|take\s+(?:your\s+|the\s+)?(?:home|prior|usual)\s+medication|(?:home\s+medications?:?.*\btake\b|\btake\b.*\b(?:as\s+before|home\s+medication|prior\s+to\s+admission|previously)))(?![a-z0-9])",
+    re.IGNORECASE,
+)
+
+BARE_TAKE_CUE_PATTERN: re.Pattern[str] = re.compile(
+    r"(?<![a-z0-9])take(?![a-z0-9])",
     re.IGNORECASE,
 )
 
@@ -977,37 +982,34 @@ def _extract_drug_clauses(
     if len(clauses) <= 1:
         return ev_canon, False
 
-    # Identify which known drugs appear in each clause
-    clause_drugs: list[set[str]] = []
-    all_drugs_in_ev: set[str] = set()
+    # Identify which known drugs or dose-bearing/action-bearing drug clauses appear
+    clause_mentions_target: list[bool] = []
+    clause_has_other_drug: list[bool] = []
     for cl in clauses:
-        found: set[str] = set()
-        for alias, pat in ALL_KNOWN_DRUG_PATTERNS:
-            if pat.search(cl):
-                canon_d = SYNTHETIC_DRUG_ALIASES[alias]
-                found.add(canon_d)
-                all_drugs_in_ev.add(canon_d)
-        clause_drugs.append(found)
+        mentions_target = any(
+            re.search(rf"(?<![a-z0-9]){re.escape(eq)}(?![a-z0-9])", cl)
+            for eq in med_equivalents
+        )
+        clause_mentions_target.append(mentions_target)
+        if mentions_target:
+            clause_has_other_drug.append(False)
+        else:
+            has_known_drug = any(pat.search(cl) for _, pat in ALL_KNOWN_DRUG_PATTERNS)
+            has_dose_or_action = bool(
+                parse_doses(cl)
+                or CONTINUE_CUE_PATTERN.search(cl)
+                or BARE_TAKE_CUE_PATTERN.search(cl)
+                or any(p.search(cl) for p in STOP_START_PATTERNS)
+            )
+            clause_has_other_drug.append(has_known_drug or has_dose_or_action)
 
-    target_canon = next(iter(med_equivalents), "")
-    for eq in med_equivalents:
-        if eq in SYNTHETIC_DRUG_ALIASES:
-            target_canon = SYNTHETIC_DRUG_ALIASES[eq]
-            break
-
-    is_multi_drug = len(all_drugs_in_ev) > 1
+    is_multi_drug = any(clause_has_other_drug) and any(clause_mentions_target)
     if not is_multi_drug:
         return ev_canon, False
 
     matching_clauses: list[str] = []
     for idx, cl in enumerate(clauses):
-        if any(
-            re.search(rf"(?<![a-z0-9]){re.escape(eq)}(?![a-z0-9])", cl)
-            for eq in med_equivalents
-        ):
-            matching_clauses.append(cl)
-        elif not clause_drugs[idx]:
-            # Clause without any drug name (e.g. shared trailing modifier)
+        if clause_mentions_target[idx] or not clause_has_other_drug[idx]:
             matching_clauses.append(cl)
 
     bound_text = " ; ".join(matching_clauses) if matching_clauses else ""
@@ -2770,6 +2772,7 @@ class SafetyValidator:
         # Gather verified evidence snippets and extract covered drug identities per medication item
         med_evidence: list[str] = []
         extracted_med_canonicals: set[str] = set()
+        extracted_med_equivalents: set[str] = set()
         for med in payload.medications:
             if med.source_evidence and not any(
                 f.code == HazardCode.MISSING_SOURCE_EVIDENCE for f in med.safety_flags
@@ -2777,6 +2780,9 @@ class SafetyValidator:
                 med_evidence.append(canonicalize_text(med.source_evidence.source_text))
                 extracted_med_canonicals.add(
                     resolve_canonical_medication_name(med.medication_name)
+                )
+                extracted_med_equivalents.update(
+                    get_medication_equivalents(med.medication_name)
                 )
 
         fu_evidence: list[str] = []
@@ -2850,22 +2856,35 @@ class SafetyValidator:
                 # 1. Check omitted medication instructions at the clause level
                 has_sensitive_med_verb = (
                     any(p.search(clause) for p in SENSITIVE_MED_OMISSION_PATTERNS)
-                    or bool(re.search(r"\bcontinue\s+[a-z]{3,}", clause))
+                    or bool(re.search(r"\b(?:continue|take)\s+[a-z]{3,}", clause))
                     or (
                         "except" in sent_stripped_neg
-                        and any(pat.search(clause) for _, pat in ALL_KNOWN_DRUG_PATTERNS)
+                        and (
+                            any(pat.search(clause) for _, pat in ALL_KNOWN_DRUG_PATTERNS)
+                            or "home medication" not in clause
+                        )
                     )
                 )
                 if has_sensitive_med_verb:
-                    # Also verify that if a known drug is named in this clause, that drug was extracted!
                     drugs_in_clause = {
                         SYNTHETIC_DRUG_ALIASES[alias]
                         for alias, pat in ALL_KNOWN_DRUG_PATTERNS
                         if pat.search(clause)
                     }
-                    clause_covered = _clause_is_covered(clause, med_evidence) and (
-                        not drugs_in_clause
-                        or drugs_in_clause.issubset(extracted_med_canonicals)
+                    if drugs_in_clause:
+                        drug_identity_covered = drugs_in_clause.issubset(
+                            extracted_med_canonicals
+                        )
+                    elif "home medication" in clause:
+                        drug_identity_covered = bool(extracted_med_equivalents)
+                    else:
+                        drug_identity_covered = any(
+                            _has_word_boundary_match(eq, clause)
+                            for eq in extracted_med_equivalents
+                        )
+                    clause_covered = (
+                        _clause_is_covered(clause, med_evidence)
+                        and drug_identity_covered
                     )
                     if not clause_covered:
                         self._append_omission_flags(
