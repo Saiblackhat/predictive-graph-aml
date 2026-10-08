@@ -321,12 +321,8 @@ def _extract_medication_from_sentence(
     if not raw_drug_name:
         return None
 
-    # Normalize salt suffix for canonical validator compatibility while keeping raw_medication_display
-    parts = raw_drug_name.split()
-    if len(parts) == 2 and parts[1].lower() in PHARMACEUTICAL_SALT_SUFFIXES and parts[0].lower() in SYNTHETIC_DRUG_ALIASES:
-        canonical_med_name = parts[0]
-    else:
-        canonical_med_name = raw_drug_name
+    # Preserve raw medication name without stripping salt suffixes (e.g. metoprolol tartrate)
+    canonical_med_name = raw_drug_name
 
     # Extract dosage & previous_dosage
     previous_dosage: Optional[str] = None
