@@ -1,0 +1,121 @@
+entity_id	business_name	business_address	country
+S1-00001	Quartz Pvt Ltd	415 Park Rd, Hyderabad, IN 989382	India
+S1-00002	Riverdale Corp	484 Ring Rd, Greenville, US 53362	US
+S1-00003	Acme Enterprises	250 MG Road, Chennai, IN 770928	India
+S1-00004	Ember Enterprises	456 Church St, Chennai, IN 073218	India
+S1-00005	Zenith Co	535 Ring Rd, Greenville, US 88859	US
+S1-00006	Ashgrove Corp	381 Oak Lane, Fairview, US 73811	US
+S1-00007	Amberline Pvt Ltd	380 MG Road, Bengaluru, IN 816197	India
+S1-00008	Brightwater Inc	41 Main St, Madison, US 56329	US
+S1-00009	Ember Pvt Ltd	866 Ring Rd, Pune, IN 151960	India
+S1-00010	Stonebridge Ltd	158 Ring Rd, Chennai, IN 507302	India
+S1-00011	Harborview Enterprises	2 MG Road, Bengaluru, IN 561247	India
+S1-00012	Silverline LLC	458 Oak Lane, Fairview, US 54578	US
+S1-00013	Zenith Enterprises	412 5th Ave, Bengaluru, IN 940079	India
+S1-00014	Sablewood Co	23 Oak Lane, Springfield, US 24781	US
+S1-00015	Sunrise Enterprises	730 Oak Lane, Hyderabad, IN 644813	India
+S1-00016	Ashgrove Inc	370 5th Ave, Greenville, US 35242	US
+S1-00017	Junction Co	344 Main St, Greenville, US 78963	US
+S1-00018	Silverline Pvt Ltd	63 5th Ave, Pune, IN 305297	India
+S1-00019	Zenith LLC	600 5th Ave, Greenville, US 74308	US
+S1-00020	Frostline Enterprises	510 5th Ave, Bengaluru, IN 320921	India
+S1-00021	Cedarfield Ltd	556 MG Road, Pune, IN 623988	India
+S1-00022	Zenith Corp	134 Main St, Fairview, US 00831	US
+S1-00023	Driftwood Pvt Ltd	928 Oak Lane, Hyderabad, IN 729498	India
+S1-00024	Granite Pvt Ltd	759 Oak Lane, Bengaluru, IN 152089	India
+S1-00025	Meridian Ltd	627 MG Road, Bengaluru, IN 441705	India
+S1-00026	Wrenfield Ltd	982 Ring Rd, Pune, IN 979868	India
+S1-00027	Sunrise Corp	923 MG Road, Greenville, US 05582	US
+S1-00028	Cascade Enterprises	520 Church St, Hyderabad, IN 314599	India
+S1-00029	Cedarfield LLC	73 Main St, Greenville, US 16318	US
+S1-00030	Ironwood Ltd	956 Oak Lane, Bengaluru, IN 681139	India
+S1-00031	Zenith Corp	161 Church St, Greenville, US 31125	US
+S1-00032	Pinnacle Co	606 Oak Lane, Fairview, US 46043	US
+S1-00033	Quartz Corp	452 MG Road, Greenville, US 22497	US
+S1-00034	Sablewood Pvt Ltd	851 Park Rd, Bengaluru, IN 660276	India
+S1-00035	Redwood Ltd	363 Main St, Chennai, IN 279507	India
+S1-00036	Redwood Enterprises	300 Ring Rd, Chennai, IN 451114	India
+S1-00037	Junction Corp	27 Church St, Fairview, US 33989	US
+S1-00038	Falcon Pvt Ltd	734 MG Road, Hyderabad, IN 314844	India
+S1-00039	Coral Pvt Ltd	358 5th Ave, Hyderabad, IN 738321	India
+S1-00040	Oakridge Ltd	649 Main St, Pune, IN 010616	India
+S1-00041	Stonebridge Co	648 MG Road, Springfield, US 66657	US
+S1-00042	Granite Co	465 Church St, Fairview, US 16603	US
+S1-00043	Falcon LLC	320 Oak Lane, Greenville, US 53482	US
+S1-00044	Ember Ltd	838 Church St, Bengaluru, IN 478014	India
+S1-00045	Brightwater Corp	625 Church St, Greenville, US 52246	US
+S1-00046	Northstar Ltd	122 Oak Lane, Chennai, IN 952752	India
+S1-00047	Silverline Enterprises	240 Park Rd, Chennai, IN 345105	India
+S1-00048	Ember Co	241 Church St, Fairview, US 78735	US
+S1-00049	Granite Inc	829 Oak Lane, Madison, US 94382	US
+S1-00050	Harborview Pvt Ltd	323 5th Ave, Bengaluru, IN 793476	India
+S1-00051	Brightwater Inc	446 5th Ave, Madison, US 13677	US
+S1-00052	Northstar Ltd	4 MG Road, Pune, IN 566860	India
+S1-00053	Zenith Ltd	636 Ring Rd, Bengaluru, IN 676037	India
+S1-00054	Redwood LLC	968 Park Rd, Madison, US 33959	US
+S1-00055	Cobalt Enterprises	405 Main St, Hyderabad, IN 744070	India
+S1-00056	Cobalt Inc	825 Main St, Greenville, US 99576	US
+S1-00057	Acme Corp	976 Church St, Fairview, US 32244	US
+S1-00058	Cobalt Enterprises	72 Church St, Pune, IN 549116	India
+S1-00059	Thistledown Enterprises	351 Church St, Chennai, IN 177871	India
+S1-00060	Sunrise Co	922 Oak Lane, Fairview, US 05966	US
+S1-00061	Silverline Enterprises	762 MG Road, Pune, IN 788811	India
+S1-00062	Cedarfield Corp	505 Park Rd, Springfield, US 02737	US
+S1-00063	Bluepeak Co	43 MG Road, Fairview, US 08307	US
+S1-00064	Meridian Co	524 Ring Rd, Greenville, US 01146	US
+S1-00065	Milestone Corp	973 Ring Rd, Madison, US 18801	US
+S1-00066	Frostline Enterprises	648 5th Ave, Bengaluru, IN 560780	India
+S1-00067	Hollowbrook Corp	841 Church St, Springfield, US 50716	US
+S1-00068	Coral Corp	46 Park Rd, Fairview, US 40330	US
+S1-00069	Stonebridge Pvt Ltd	452 MG Road, Bengaluru, IN 397658	India
+S1-00070	Zenith Corp	810 Church St, Madison, US 79058	US
+S1-00071	Marigold Inc	165 Church St, Fairview, US 19628	US
+S1-00072	Willowmere LLC	900 5th Ave, Fairview, US 43537	US
+S1-00073	Harborview Corp	582 MG Road, Madison, US 93215	US
+S1-00074	Ashgrove Enterprises	619 Park Rd, Bengaluru, IN 642037	India
+S1-00075	Oakridge Inc	28 Oak Lane, Madison, US 77941	US
+S1-00076	Lumen LLC	785 5th Ave, Greenville, US 45082	US
+S1-00077	Harborview Corp	36 Park Rd, Madison, US 62731	US
+S1-00078	Hollowbrook Pvt Ltd	213 5th Ave, Pune, IN 101486	India
+S1-00079	Quartz Ltd	644 5th Ave, Chennai, IN 536997	India
+S1-00080	Sablewood LLC	833 MG Road, Madison, US 09156	US
+S1-00081	Riverdale Enterprises	611 Ring Rd, Pune, IN 691663	India
+S1-00082	Lumen Co	693 Park Rd, Springfield, US 45247	US
+S1-00083	Silverline Enterprises	848 5th Ave, Bengaluru, IN 619464	India
+S1-00084	Elmcourt Corp	276 MG Road, Springfield, US 84641	US
+S1-00085	Riverdale Inc	843 Oak Lane, Springfield, US 65104	US
+S1-00086	Willowmere Pvt Ltd	282 MG Road, Chennai, IN 249530	India
+S1-00087	Stonebridge LLC	852 MG Road, Fairview, US 74546	US
+S1-00088	Ironwood Corp	353 MG Road, Fairview, US 97932	US
+S1-00089	Pinnacle Co	531 5th Ave, Greenville, US 60382	US
+S1-00090	Amberline Pvt Ltd	270 MG Road, Bengaluru, IN 231732	India
+S1-00091	Acme Co	949 Main St, Fairview, US 29384	US
+S1-00092	Cypress LLC	847 Oak Lane, Greenville, US 34152	US
+S1-00093	Quartz Corp	710 Church St, Springfield, US 91844	US
+S1-00094	Frostline Inc	260 MG Road, Fairview, US 41434	US
+S1-00095	Milestone Corp	956 5th Ave, Greenville, US 56910	US
+S1-00096	Elmcourt Ltd	422 Oak Lane, Pune, IN 410973	India
+S1-00097	Falcon Enterprises	532 Park Rd, Pune, IN 975466	India
+S1-00098	Ember Enterprises	249 MG Road, Bengaluru, IN 463700	India
+S1-00099	Riverdale Enterprises	907 MG Road, Chennai, IN 641387	India
+S1-00100	Redwood Co	914 Oak Lane, Fairview, US 30404	US
+S1-00101	Coral Enterprises	317 Oak Lane, Hyderabad, IN 350940	India
+S1-00102	Cascade LLC	265 5th Ave, Madison, US 14893	US
+S1-00103	Granite Enterprises	46 Park Rd, Bengaluru, IN 165094	India
+S1-00104	Northstar Enterprises	33 MG Road, Pune, IN 621266	India
+S1-00105	Oakridge Ltd	166 Church St, Bengaluru, IN 986219	India
+S1-00106	Sunrise Inc	572 Park Rd, Springfield, US 82162	US
+S1-00107	Elmcourt LLC	575 5th Ave, Greenville, US 67083	US
+S1-00108	Sunrise Pvt Ltd	300 Church St, Bengaluru, IN 812258	India
+S1-00109	Ironwood Pvt Ltd	654 Main St, Bengaluru, IN 809396	India
+S1-00110	Cedarfield Co	434 MG Road, Springfield, US 35283	US
+S1-00111	Northstar Enterprises	289 5th Ave, Hyderabad, IN 246918	India
+S1-00112	Vertex Pvt Ltd	948 Ring Rd, Hyderabad, IN 892585	India
+S1-00113	Oakridge Ltd	518 5th Ave, Hyderabad, IN 335185	India
+S1-00114	Acme Enterprises	462 5th Ave, Hyderabad, IN 699620	India
+S1-00115	Ember Pvt Ltd	524 Ring Rd, Bengaluru, IN 862786	India
+S1-00116	Bluepeak Co	624 Ring Rd, Fairview, US 34442	US
+S1-00117	Stonebridge Enterprises	406 Church St, Hyderabad, IN 565678	India
+S1-00118	Cascade Enterprises	266 MG Road, Chennai, IN 446079	India
+S1-00119	Lumen Enterprises	10 Ring Rd, Chennai, IN 660918	India
+S1-00120	Junction LLC	90 Ring Rd, Greenville, US 57670	US

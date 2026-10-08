@@ -1,0 +1,90 @@
+entity_id	business_name	business_address	country
+S2-00001	Quartz Private Limited	415 Park Rd, Hyderabad, IN 989382	India
+S2-00002	Riverdale  Corp	484 Ring Rd, Greenville	US
+S2-00003	Acme  Enterprises	250 MG Road, Chennai, IN 770928	India
+S2-00005	Zenith Co	535 Ring Rd, Greenville, US 88859	US
+S2-00006	Ashgrove Corp	381 Oak Lane, Fairview	US
+S2-00012	Silverline Limited Liability Company	458 Oak Lane, Fairview	US
+S2-00013	Zenith  Enterprises	412 5th Ave, Bengaluru, IN 940079	India
+S2-00014	Sablewood Co	23 Oak Lane, Springfield	US
+S2-00015	Sunrise Enterprises	730 Oak Lane, Hyderabad	India
+S2-00016	Ashgrove  Inc	370 5th Ave, Greenville, US 35242	US
+S2-00020	Frostline Enterprises	Near City Mall, 510 5th Ave, Bengaluru, IN 320921	India
+S2-00021	Cedarfield Limited	556 MG Road, Pune, IN 623988	India
+S2-00022	Zenith Corp	134 Main St, Fairview, US 00831	US
+S2-00024	Granite Pvt Limited	Near City Mall, 759 Oak Lane, Bengaluru, IN 152089	India
+S2-00025	Meridian Ltd	Near City Mall, 627 MG Road, Bengaluru, IN 441705	India
+S2-00028	Cascade Enterprises	520 Church St, Hyderabad, IN 314599	India
+S2-00029	Cedarfield  LLC	Near City Mall, 73 Main St, Greenville, US 16318	US
+S2-00031	Zenith Corporation	161 Church St, Greenville, US 31125	US
+S2-00033	Quartz Corp	452 MG Road, Greenville, US 22497	US
+S2-00034	Sablewood Pvt Limited	851 Park Rd, Bengaluru, IN 660276	India
+S2-00035	Redwood Ltd	363 Main St, Chennai, IN 279507	India
+S2-00036	Redwood Enterprises	300 Ring Rd, Chennai, IN 451114	India
+S2-00037	Junction Corp	27 Church St, Fairview	US
+S2-00041	Stonebridge Co	648 MG Road, Springfield	US
+S2-00043	Falcon Limited Liability Company	320 Oak Lane, Greenville, US 53482	US
+S2-00045	Brightwater  Corporation	625 Church St, Greenville, US 52246	US
+S2-00047	Silverline Enterprises	240 Park Rd, Chennai	India
+S2-00050	Harborview Private Limited	323 5th Ave, Bengaluru	India
+S2-00051	Brightwater Inc	446 5th Ave, Madison, US 13677	US
+S2-00053	Zenith Ltd	636 Ring Rd, Bengaluru, IN 676037	India
+S2-00055	Cobalt Enterprises	Near City Mall, 405 Main St, Hyderabad, IN 744070	India
+S2-00057	Acme Corp	976 Church St, Fairview	US
+S2-00058	Cobalt Enterprises	72 Church St, Pune, IN 549116	India
+S2-00060	Sunrise Co	Near City Mall, 922 Oak Lane, Fairview, US 05966	US
+S2-00061	Silverline Enterprises	762 MG Rd, Pune, IN 788811	India
+S2-00062	Cedarfield  Corp	505 Park Rd, Springfield	US
+S2-00063	Bluepeak Co	43 MG Road, Fairview	US
+S2-00066	Frostline Enterprises	648 5th Ave, Bengaluru, IN 560780	India
+S2-00067	Hollowbrook Corporation	841 Church St, Springfield	US
+S2-00069	Stonebridge Pvt Limited	452 MG Rd, Bengaluru, IN 397658	India
+S2-00070	Zenith Corporation	Near City Mall, 810 Church St, Madison, US 79058	US
+S2-00072	Willowmere LLC	Near City Mall, 900 5th Ave, Fairview	US
+S2-00073	Harborview Corporation	582 MG Road, Madison, US 93215	US
+S2-00075	Oakridge Incorporated	Near City Mall, 28 Oak Lane, Madison, US 77941	US
+S2-00077	Harborview Corporation	Near City Mall, 36 Park Rd, Madison, US 62731	US
+S2-00083	Silverline Enterprises	848 5th Ave, Bengaluru, IN 619464	India
+S2-00084	Elmcourt Corp	Near City Mall, 276 MG Rd, Springfield	US
+S2-00085	Riverdale  Inc	843 Oak Lane, Springfield, US 65104	US
+S2-00086	Willowmere Private Limited	282 MG Rd, Chennai, IN 249530	India
+S2-00090	Amberline  Private  Limited	270 MG Road, Bengaluru	India
+S2-00092	Cypress  Limited  Liability  Company	847 Oak Lane, Greenville, US 34152	US
+S2-00093	Quartz Corporation	710 Church St, Springfield, US 91844	US
+S2-00105	Oakridge Ltd	Near City Mall, 166 Church St, Bengaluru	India
+S2-00106	Sunrise  Incorporated	572 Park Rd, Springfield, US 82162	US
+S2-00108	Sunrise Pvt Limited	300 Church St, Bengaluru, IN 812258	India
+S2-00110	Cedarfield Co	434 MG Road, Springfield	US
+S2-00111	Northstar  Enterprises	289 5th Ave, Hyderabad	India
+S2-00112	Vertex Pvt Limited	948 Ring Rd, Hyderabad, IN 892585	India
+S2-00117	Stonebridge Enterprises	406 Church St, Hyderabad, IN 565678	India
+S2-00118	Cascade Enterprises	Near City Mall, 266 MG Rd, Chennai, IN 446079	India
+S2-00120	Junction Limited Liability Company	Near City Mall, 90 Ring Rd, Greenville	US
+S2-N00000	Cascade Ltd	928 Church St, Pune, IN 046661	India
+S2-N00001	Wrenfield Inc	348 Oak Lane, Springfield, US 93974	US
+S2-N00004	Northstar LLC	9 Church St, Springfield, US 00711	US
+S2-N00006	Redwood Inc	417 Church St, Greenville, US 49857	US
+S2-N00007	Hollowbrook Pvt Ltd	603 Oak Lane, Pune, IN 985224	India
+S2-N00008	Oakridge Enterprises	898 Ring Rd, Bengaluru, IN 027859	India
+S2-N00009	Cedarfield Inc	89 Park Rd, Springfield, US 32345	US
+S2-N00013	Cascade Corp	487 5th Ave, Springfield, US 14655	US
+S2-N00015	Sablewood LLC	945 Oak Lane, Fairview, US 07591	US
+S2-N00016	Cypress Co	725 5th Ave, Springfield, US 46866	US
+S2-N00019	Frostline Co	615 5th Ave, Fairview, US 32859	US
+S2-N00021	Cascade LLC	430 Oak Lane, Madison, US 88776	US
+S2-N00025	Falcon Ltd	931 Park Rd, Pune, IN 191827	India
+S2-N00027	Zenith Enterprises	811 Oak Lane, Chennai, IN 528876	India
+S2-N00029	Falcon Pvt Ltd	279 Park Rd, Hyderabad, IN 352231	India
+S2-N00032	Sunrise Ltd	529 Church St, Hyderabad, IN 792290	India
+S2-N00034	Zenith Inc	526 Ring Rd, Springfield, US 11564	US
+S2-N00035	Cobalt Enterprises	656 Ring Rd, Hyderabad, IN 673977	India
+S2-N00036	Ember Inc	147 Ring Rd, Springfield, US 24682	US
+S2-N00037	Pinnacle Enterprises	847 Main St, Bengaluru, IN 466219	India
+S2-N00047	Thistledown Ltd	98 5th Ave, Chennai, IN 462693	India
+S2-N00048	Harborview Co	523 Main St, Greenville, US 64655	US
+S2-N00051	Quartz Inc	256 Oak Lane, Springfield, US 37418	US
+S2-N00052	Lumen Corp	135 Main St, Madison, US 09576	US
+S2-N00053	Riverdale Ltd	616 Main St, Chennai, IN 121639	India
+S2-N00054	Marigold Co	249 Ring Rd, Fairview, US 36459	US
+S2-N00055	Riverdale LLC	320 Oak Lane, Fairview, US 55305	US
+S2-N00056	Northstar Inc	170 MG Road, Fairview, US 49648	US
