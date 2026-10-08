@@ -40,11 +40,22 @@ SPANISH_FREQUENCY_MAP: dict[str, str] = {
 
 SPANISH_ROUTE_MAP: dict[str, str] = {
     "by mouth": "por vía oral",
+    "orally": "por vía oral",
+    "po": "por vía oral",
+    "through an iv": "por vía intravenosa",
     "through an IV": "por vía intravenosa",
+    "iv": "por vía intravenosa",
+    "intravenously": "por vía intravenosa",
     "as an injection under the skin": "por inyección subcutánea",
+    "subcutaneously": "por inyección subcutánea",
+    "subq": "por inyección subcutánea",
     "under your tongue": "debajo de la lengua",
+    "sublingually": "debajo de la lengua",
+    "sublingual": "debajo de la lengua",
     "on your skin": "en la piel",
+    "topically": "en la piel",
     "in your nose": "en la nariz",
+    "nasally": "en la nariz",
 }
 
 SPANISH_TIMEFRAME_MAP: dict[str, str] = {
@@ -112,7 +123,13 @@ def translate_patient_item_to_spanish(
         freq_str = f" {freq_es}" if freq_es else ""
 
         route_en = meta.get("route", "")
-        route_es = SPANISH_ROUTE_MAP.get(route_en.lower(), route_en) if route_en else ""
+        route_exp = meta.get("route_expanded", "")
+        route_es = (
+            SPANISH_ROUTE_MAP.get(route_exp.lower())
+            or SPANISH_ROUTE_MAP.get(route_en.lower())
+            or route_exp
+            or route_en
+        ) if (route_en or route_exp) else ""
         route_str = f" {route_es}" if route_es else ""
 
         if action == MedicationAction.STOP_DISCONTINUE.value:

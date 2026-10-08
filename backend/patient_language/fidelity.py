@@ -18,6 +18,7 @@ from __future__ import annotations
 import re
 from typing import NamedTuple
 
+from backend.schemas.models import MedicationAction
 from backend.task_orchestration.types import TaskCategory
 from backend.patient_language.types import PatientLanguageItem, TranslatedPatientLanguageItem
 
@@ -135,6 +136,67 @@ def audit_patient_language_fidelity(
                     )
                 )
 
+        # Frequency Preservation in Spanish (scheduled active medications only)
+        freq_exp = meta.get("frequency_expanded")
+        action_val = meta.get("action")
+        is_scheduled = (
+            action_val in (
+                MedicationAction.CONTINUE.value,
+                MedicationAction.NEW_START.value,
+                MedicationAction.DOSE_CHANGE.value,
+            )
+            and item.patient_releasable
+        )
+        if freq_exp and translation and is_scheduled:
+            freq_lower = freq_exp.lower()
+            expected_es_freq = None
+            if "twice a day" in freq_lower:
+                expected_es_freq = "dos veces al día"
+            elif "three times a day" in freq_lower:
+                expected_es_freq = "tres veces al día"
+            elif "four times a day" in freq_lower:
+                expected_es_freq = "cuatro veces al día"
+            elif "once a day" in freq_lower:
+                expected_es_freq = "una vez al día"
+            elif "as needed" in freq_lower:
+                expected_es_freq = "según sea necesario"
+
+            if expected_es_freq:
+                findings.append(
+                    FidelityAuditFinding(
+                        item_id=translation.item_id,
+                        field_checked="frequency_es",
+                        expected_value=expected_es_freq,
+                        actual_value=translation.translated_instruction,
+                        passed=expected_es_freq in text_es,
+                        details=f"Frequency '{expected_es_freq}' preserved in Spanish",
+                    )
+                )
+
+        # Route Preservation in Spanish (scheduled active medications only)
+        route = meta.get("route")
+        if route and translation and is_scheduled:
+            route_lower = route.lower()
+            expected_es_route = None
+            if route_lower in ("by mouth", "orally", "po"):
+                expected_es_route = "por vía oral"
+            elif route_lower in ("iv", "intravenously"):
+                expected_es_route = "por vía intravenosa"
+            elif route_lower in ("sublingually", "sublingual"):
+                expected_es_route = "debajo de la lengua"
+
+            if expected_es_route:
+                findings.append(
+                    FidelityAuditFinding(
+                        item_id=translation.item_id,
+                        field_checked="route_es",
+                        expected_value=expected_es_route,
+                        actual_value=translation.translated_instruction,
+                        passed=expected_es_route in text_es,
+                        details=f"Route '{expected_es_route}' preserved in Spanish",
+                    )
+                )
+
         # Action & Negation
         action = meta.get("action")
         if action == "STOP_DISCONTINUE":
@@ -150,7 +212,7 @@ def audit_patient_language_fidelity(
                 )
             )
             if translation:
-                neg_es = "no tome" in text_es or "deje de tomar" in text_es
+                neg_es = ("no tome" in text_es or "deje de tomar" in text_es) and "continúe tomando" not in text_es
                 findings.append(
                     FidelityAuditFinding(
                         item_id=translation.item_id,
@@ -161,6 +223,18 @@ def audit_patient_language_fidelity(
                         details="Negation preserved for STOP action in Spanish",
                     )
                 )
+        elif action == "CONTINUE" and translation:
+            cont_es = "continúe tomando" in text_es and "no tome" not in text_es
+            findings.append(
+                FidelityAuditFinding(
+                    item_id=translation.item_id,
+                    field_checked="continue_action_es",
+                    expected_value="Continúe tomando",
+                    actual_value=translation.translated_instruction,
+                    passed=cont_es,
+                    details="Continuation preserved for CONTINUE action in Spanish",
+                )
+            )
 
     # 2. Timeframe Preservation & Operator Distinction
     tf_str = meta.get("timeframe", "")
@@ -199,6 +273,17 @@ def audit_patient_language_fidelity(
                     details="Timeframe 'after' not converted to 'within' in English",
                 )
             )
+            if translation:
+                findings.append(
+                    FidelityAuditFinding(
+                        item_id=translation.item_id,
+                        field_checked="timeframe_operator_after_es",
+                        expected_value="después de",
+                        actual_value=text_es,
+                        passed="después de" in text_es and "dentro de" not in text_es,
+                        details="Timeframe 'after' translated as 'después de' in Spanish",
+                    )
+                )
 
     # 3. Warning Thresholds & Inequalities
     if item.category == TaskCategory.WARNING_MONITORING:
@@ -229,6 +314,30 @@ def audit_patient_language_fidelity(
                     )
                 )
 
+        # Inequality semantics in Spanish
+        if "more than" in symp.lower() and translation:
+            findings.append(
+                FidelityAuditFinding(
+                    item_id=translation.item_id,
+                    field_checked="inequality_more_than_es",
+                    expected_value="más de",
+                    actual_value=text_es,
+                    passed="más de" in text_es and "menos de" not in text_es,
+                    details="Inequality 'more than' strictly translated as 'más de' in Spanish",
+                )
+            )
+        elif "greater than" in symp.lower() and translation:
+            findings.append(
+                FidelityAuditFinding(
+                    item_id=translation.item_id,
+                    field_checked="inequality_greater_than_es",
+                    expected_value="mayor de",
+                    actual_value=text_es,
+                    passed="mayor de" in text_es,
+                    details="Inequality 'greater than' strictly translated as 'mayor de' in Spanish",
+                )
+            )
+
     # 4. Specialty Neutrality
     for prohibited in ("best", "recommended", "top-rated", "guaranteed"):
         findings.append(
@@ -241,6 +350,18 @@ def audit_patient_language_fidelity(
                 details=f"No subjective claim '{prohibited}' in English",
             )
         )
+        if translation:
+            prohibited_es = "mejor" if prohibited == "best" else ("recomendado" if prohibited == "recommended" else "garantizado")
+            findings.append(
+                FidelityAuditFinding(
+                    item_id=translation.item_id,
+                    field_checked=f"neutrality_{prohibited_es}_es",
+                    expected_value=f"no '{prohibited_es}'",
+                    actual_value=text_es,
+                    passed=prohibited_es not in text_es,
+                    details=f"No subjective claim '{prohibited_es}' in Spanish",
+                )
+            )
 
     return findings
 

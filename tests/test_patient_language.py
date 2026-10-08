@@ -248,6 +248,153 @@ class TestPhase6PatientLanguage(unittest.TestCase):
         self.assertTrue(has_tartrate)
         self.assertTrue(has_succinate)
 
+    # ------------------------------------------------------------------
+    # Additional Targeted Negation Tests
+    # ------------------------------------------------------------------
+    def test_targeted_negation_do_not_stop(self) -> None:
+        raw = (
+            "Discharge Medications:\n"
+            "Continue taking aspirin 81 mg daily. Do not stop.\n"
+            "Follow-Up Appointments:\n"
+            "Follow up with Primary Care in 14 days.\n"
+        )
+        ext = run_document_intelligence_pipeline(raw)
+        plan = generate_patient_care_plan(orchestrate_care_journey(ext))
+        med_item = next(it for it in plan.items if "aspirin" in it.simplified_instruction)
+        self.assertIn("Keep taking aspirin 81 mg", med_item.simplified_instruction)
+        self.assertNotIn("Stop taking", med_item.simplified_instruction)
+
+    def test_targeted_negation_do_not_take(self) -> None:
+        raw = (
+            "Discharge Medications:\n"
+            "Do not take lisinopril 10 mg daily.\n"
+            "Follow-Up Appointments:\n"
+            "Follow up with Primary Care in 7 days.\n"
+        )
+        ext = run_document_intelligence_pipeline(raw)
+        plan = generate_patient_care_plan(orchestrate_care_journey(ext))
+        med_item = next(it for it in plan.items if "lisinopril" in it.simplified_instruction)
+        self.assertIn("Do not take lisinopril 10 mg", med_item.simplified_instruction)
+        self.assertNotIn("Keep taking", med_item.simplified_instruction)
+
+    def test_targeted_negation_governed_no_new_meds(self) -> None:
+        raw = (
+            "Discharge Medications:\n"
+            "No new medications were started.\n"
+            "Follow-Up Appointments:\n"
+            "Follow up with Primary Care within 7 days.\n"
+        )
+        ext = run_document_intelligence_pipeline(raw)
+        plan = generate_patient_care_plan(orchestrate_care_journey(ext))
+        med_items = [it for it in plan.items if it.category.value == "MEDICATION"]
+        self.assertEqual(len(med_items), 0, "No false positive medication items should be created from governed negation")
+        self.assertTrue(plan.patient_releasable)
+
+    def test_targeted_negation_governed_exception_warfarin(self) -> None:
+        raw = (
+            "Discharge Medications:\n"
+            "No home medications were stopped except warfarin.\n"
+            "Follow-Up Appointments:\n"
+            "Follow up with Endocrinology within 14 days.\n"
+        )
+        ext = run_document_intelligence_pipeline(raw)
+        plan = generate_patient_care_plan(orchestrate_care_journey(ext))
+        med_items = [it for it in plan.items if it.category.value == "MEDICATION"]
+        self.assertEqual(len(med_items), 1)
+        self.assertIn("warfarin", med_items[0].simplified_instruction)
+        self.assertFalse(plan.patient_releasable, "Governed negation exception must require clinician review")
+
+    # ------------------------------------------------------------------
+    # Real Unsupported Provider Claim Tests
+    # ------------------------------------------------------------------
+    def test_real_unsupported_provider_claims_blocked_and_unreleasable(self) -> None:
+        raw = (
+            "Discharge Medications:\n"
+            "Continue aspirin 81 mg daily.\n"
+            "Follow-Up Appointments:\n"
+            "Follow up with Dr. Best Cardiologist in town, guaranteed 100 percent cure within 7 days.\n"
+        )
+        ext = run_document_intelligence_pipeline(raw)
+        plan = generate_patient_care_plan(orchestrate_care_journey(ext))
+        # Must NOT be patient releasable
+        self.assertFalse(plan.patient_releasable)
+        self.assertTrue(plan.requires_human_review)
+
+        # Output text must NEVER endorse the unsupported subjective claim
+        for it in plan.items:
+            text = it.simplified_instruction.lower()
+            self.assertNotIn("guaranteed", text)
+            self.assertNotIn("100 percent cure", text)
+
+    def test_real_unsupported_provider_claim_recommended_top_rated(self) -> None:
+        raw = (
+            "Discharge Medications:\n"
+            "Continue aspirin 81 mg daily.\n"
+            "Follow-Up Appointments:\n"
+            "Follow up with the recommended top-rated cardiologist in 14 days.\n"
+        )
+        ext = run_document_intelligence_pipeline(raw)
+        plan = generate_patient_care_plan(orchestrate_care_journey(ext))
+        for it in plan.items:
+            text = it.simplified_instruction.lower()
+            self.assertNotIn("top-rated", text)
+            self.assertNotIn("recommended", text)
+
+    # ------------------------------------------------------------------
+    # Stronger Spanish Semantic-Fidelity Checks
+    # ------------------------------------------------------------------
+    def test_stronger_spanish_fidelity_route_and_frequency(self) -> None:
+        raw = (
+            "Discharge Medications:\n"
+            "Start furosemide 20 mg IV four times daily.\n"
+            "Follow-Up Appointments:\n"
+            "Follow up with Cardiology in 14 days.\n"
+        )
+        ext = run_document_intelligence_pipeline(raw)
+        plan = generate_patient_care_plan(orchestrate_care_journey(ext), target_language=LanguageCode.ES)
+        es_med = next(t for t in plan.translations if "furosemide" in t.translated_instruction)
+        self.assertIn("20 mg", es_med.translated_instruction)
+        self.assertIn("cuatro veces al día", es_med.translated_instruction)
+        self.assertIn("por vía intravenosa", es_med.translated_instruction)
+        self.assertTrue(plan.fidelity_audit_passed)
+
+    def test_stronger_spanish_fidelity_decimal_inequality(self) -> None:
+        raw = (
+            "Discharge Medications:\n"
+            "Continue furosemide 40 mg daily.\n"
+            "Warning Signs:\n"
+            "Call clinic if weight increases by more than 3.5 pounds in 24 hours.\n"
+            "Follow-Up Appointments:\n"
+            "Follow up with Cardiology in 14 days.\n"
+        )
+        ext = run_document_intelligence_pipeline(raw)
+        plan = generate_patient_care_plan(orchestrate_care_journey(ext), target_language=LanguageCode.ES)
+        es_warn = next(t for t in plan.translations if "peso" in t.translated_instruction)
+        self.assertIn("más de 3.5 libras en 24 horas", es_warn.translated_instruction)
+        self.assertNotIn("menos de", es_warn.translated_instruction)
+        self.assertTrue(plan.fidelity_audit_passed)
+
+    def test_stronger_spanish_fidelity_continue_vs_stop_isolation(self) -> None:
+        raw = (
+            "Discharge Medications:\n"
+            "1. Continue atorvastatin 40 mg daily.\n"
+            "2. Stop lisinopril 10 mg daily.\n"
+            "Follow-Up Appointments:\n"
+            "Follow up with Primary Care in 7 days.\n"
+        )
+        ext = run_document_intelligence_pipeline(raw)
+        plan = generate_patient_care_plan(orchestrate_care_journey(ext), target_language=LanguageCode.ES)
+        es_ator = next(t for t in plan.translations if "atorvastatin" in t.translated_instruction)
+        es_lisi = next(t for t in plan.translations if "lisinopril" in t.translated_instruction)
+
+        self.assertIn("Continúe tomando atorvastatin 40 mg", es_ator.translated_instruction)
+        self.assertNotIn("No tome", es_ator.translated_instruction)
+
+        self.assertIn("No tome lisinopril 10 mg", es_lisi.translated_instruction)
+        self.assertNotIn("Continúe tomando", es_lisi.translated_instruction)
+        self.assertTrue(plan.fidelity_audit_passed)
+
 
 if __name__ == "__main__":
     unittest.main()
+

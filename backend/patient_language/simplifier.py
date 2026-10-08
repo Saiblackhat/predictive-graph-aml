@@ -129,6 +129,7 @@ def simplify_care_task(task: OrchestratedTask, item_index: int) -> PatientLangua
         preserved_fields["frequency"] = freq
         preserved_fields["frequency_expanded"] = freq_str
         preserved_fields["route"] = route
+        preserved_fields["route_expanded"] = route_str
         preserved_fields["action"] = action_val
 
         if action_val == MedicationAction.STOP_DISCONTINUE.value:
