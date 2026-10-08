@@ -77,3 +77,68 @@ def evaluate_synthetic_fixture(fixture_name: str) -> ValidationReport:
         )
     payload = builder()
     return validate_discharge_payload(payload)
+
+
+# ─── Phase 8 — Unified Application Endpoints ─────────────────────────────────
+
+from pathlib import Path
+from typing import Any
+from fastapi.responses import HTMLResponse
+from backend.api_orchestrator import (
+    get_available_cases,
+    orchestrate_pipeline,
+    search_providers_endpoint,
+    update_notification_state,
+)
+
+
+@app.get("/api/v1/cases")
+def list_cases_endpoint() -> list[dict[str, Any]]:
+    """Return available synthetic cases for the CareBridge command center."""
+    return get_available_cases()
+
+
+@app.post("/api/v1/orchestrate")
+def orchestrate_endpoint(req: dict[str, Any]) -> dict[str, Any]:
+    """Execute end-to-end clinical intelligence pipeline and return full UI state."""
+    case_id = req.get("case_id")
+    raw_text = req.get("raw_text")
+    language = req.get("language", "en")
+    return orchestrate_pipeline(case_id=case_id, raw_text=raw_text, language=language)
+
+
+@app.post("/api/v1/providers/search")
+def search_providers_api(req: dict[str, Any]) -> dict[str, Any]:
+    """Attribute-based provider search without clinical recommendation or ranking."""
+    specialty = req.get("specialty", "Cardiology")
+    location_city = req.get("location_city")
+    language = req.get("language")
+    insurance = req.get("insurance")
+    return search_providers_endpoint(
+        specialty=specialty,
+        location_city=location_city,
+        language=language,
+        insurance=insurance,
+    )
+
+
+@app.post("/api/v1/notifications/{notif_id}/action")
+def notification_action_endpoint(notif_id: str, req: dict[str, Any]) -> dict[str, Any]:
+    """Transition notification state (ACKNOWLEDGE, DISMISS, CANCEL, SNOOZE)."""
+    action = req.get("action", "ACKNOWLEDGE")
+    snooze_minutes = req.get("snooze_minutes", 60)
+    return update_notification_state(notif_id, action, snooze_minutes=snooze_minutes)
+
+
+@app.get("/", response_class=HTMLResponse)
+@app.get("/app", response_class=HTMLResponse)
+def serve_app() -> HTMLResponse:
+    """Serve CareBridge Cinematic Command Center application."""
+    html_path = Path(__file__).parent / "static" / "index.html"
+    if html_path.exists():
+        return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
+    # Fallback to frontend index if present
+    frontend_path = Path(__file__).parent.parent / "frontend" / "index.html"
+    if frontend_path.exists():
+        return HTMLResponse(content=frontend_path.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>CareBridge API Active</h1><p>Cinematic UI building...</p>")
