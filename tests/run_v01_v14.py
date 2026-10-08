@@ -35,29 +35,34 @@ def main() -> None:
 
         http_status = resp.status_code
         body = resp.json()
-        ext = body.get("validated_extraction", {})
-        overall_status = ext.get("overall_safety_status", f"HTTP_{http_status}")
-        patient_releasable = body.get("patient_releasable", False)
-        hazard_codes_list = body.get("triggered_hazard_codes", [])
-        hazard_codes = ",".join(hazard_codes_list) if hazard_codes_list else "NONE"
-
-        items = (
-            ext.get("medications", [])
-            + ext.get("follow_ups", [])
-            + ext.get("warning_signs", [])
-            + ext.get("daily_monitoring_tasks", [])
-            + ext.get("provider_matches", [])
-        )
-        item_safety = (
-            "; ".join(f"{it['item_id']}:{it['safety_status']}" for it in items)
-            if items
-            else "NONE"
-        )
-        item_review = (
-            "; ".join(f"{it['item_id']}:{it['review_status']}" for it in items)
-            if items
-            else "NONE"
-        )
+        if http_status == 200:
+            vp = body.get("validated_payload", {})
+            overall_status = body.get("overall_safety_status", "UNKNOWN")
+            patient_releasable = body.get("patient_releasable", False)
+            hazard_codes_list = body.get("hazard_codes_detected", [])
+            hazard_codes = ",".join(hazard_codes_list) if hazard_codes_list else "NONE"
+            items = (
+                vp.get("medications", [])
+                + vp.get("follow_ups", [])
+                + vp.get("warning_signs", [])
+                + vp.get("tasks", [])
+            )
+            item_safety = (
+                "; ".join(f"{it['id']}:{it['safety_status']}" for it in items)
+                if items
+                else "NONE"
+            )
+            item_review = (
+                "; ".join(f"{it['id']}:{it['review_status']}" for it in items)
+                if items
+                else "NONE"
+            )
+        else:
+            overall_status = f"HTTP_{http_status}_REJECTED"
+            patient_releasable = False
+            hazard_codes = "NONE"
+            item_safety = "N/A"
+            item_review = "N/A"
 
         expected_statuses = entry.get("expected_overall_status", [])
         expected_rel = entry.get("expected_patient_releasable")
