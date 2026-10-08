@@ -347,7 +347,7 @@ def _build_warning_task(
 
     if ws.is_ambiguous:
         status = TaskStatus.NEEDS_REVIEW
-        review_reasons.append(ws.ambiguity_note or "Warning sign contains ambiguous symptom phrasing.")
+        review_reasons.append("Warning sign contains ambiguous symptom phrasing.")
 
     if not overall_safe:
         status = TaskStatus.NEEDS_REVIEW
