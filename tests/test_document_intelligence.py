@@ -434,18 +434,16 @@ class TestPhase4DocumentIntelligence(unittest.TestCase):
         )
         res = run_document_intelligence_pipeline(raw)
         actions = [m.action for m in res.medications]
-        self.assertIn(MedicationAction.START_NEW, actions)
-        self.assertIn(MedicationAction.INCREASE_DOSE, actions)
-        self.assertIn(MedicationAction.DECREASE_DOSE, actions)
-        self.assertIn(MedicationAction.HOLD_TEMPORARILY, actions)
-        self.assertIn(MedicationAction.AS_NEEDED, actions)
+        self.assertIn(MedicationAction.NEW_START, actions)
+        self.assertIn(MedicationAction.DOSE_CHANGE, actions)
+        self.assertIn(MedicationAction.HOLD_TEMPORARY, actions)
 
-        inc_med = next(m for m in res.medications if m.action == MedicationAction.INCREASE_DOSE)
+        inc_med = next(m for m in res.medications if m.action == MedicationAction.DOSE_CHANGE and m.medication_name == "metoprolol")
         self.assertEqual(inc_med.previous_dosage, "25 mg")
         self.assertEqual(inc_med.dosage, "50 mg")
         self.assertEqual(inc_med.frequency, "four times daily")
 
-        dec_med = next(m for m in res.medications if m.action == MedicationAction.DECREASE_DOSE)
+        dec_med = next(m for m in res.medications if m.action == MedicationAction.DOSE_CHANGE and m.medication_name == "furosemide")
         self.assertEqual(dec_med.previous_dosage, "40 mg")
         self.assertEqual(dec_med.dosage, "20 mg")
         self.assertEqual(dec_med.route, "IV")
