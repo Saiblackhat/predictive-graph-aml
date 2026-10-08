@@ -60,8 +60,8 @@ class TestPhase8UIIntegration(unittest.TestCase):
             self.assertIn("Syne", body)
             self.assertIn("IBM Plex Mono", body)
             self.assertIn("DM Sans", body)
-            self.assertIn("orbit", body)
-            self.assertIn("data-path", body)
+            self.assertIn("CLINICAL WORKSPACE", body)
+            self.assertIn("workspace-grid", body)
 
             # CRITICAL SAFETY: Verify NO fake confidence score exists in HTML
             self.assertNotIn("94.8%", body)
