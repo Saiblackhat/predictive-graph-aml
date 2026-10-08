@@ -118,6 +118,7 @@ SYNTHETIC_DRUG_ALIASES: dict[str, str] = {
     "valsartan": "valsartan",
     "entresto": "sacubitril/valsartan",
     "sacubitril/valsartan": "sacubitril/valsartan",
+    "sacubitril-valsartan": "sacubitril/valsartan",
     "lopressor": "metoprolol",
     "toprol": "metoprolol",
     "toprol-xl": "metoprolol",
@@ -180,7 +181,9 @@ for _canon, _aset in _temp_aliases.items():
 ALL_KNOWN_DRUG_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = tuple(
     (
         alias,
-        re.compile(rf"(?<![a-z0-9]){re.escape(alias)}(?![a-z0-9])", re.IGNORECASE),
+        re.compile(
+            rf"(?<![a-z0-9/-]){re.escape(alias)}(?![a-z0-9/-])", re.IGNORECASE
+        ),
     )
     for alias in sorted(SYNTHETIC_DRUG_ALIASES.keys(), key=len, reverse=True)
 )
@@ -235,7 +238,7 @@ FREQUENCY_CLASS_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "PRN",
         re.compile(
-            r"(?<![a-z0-9])(?:as\s+needed|p\.?r\.?n\.?)(?![a-z0-9])",
+            r"(?<![a-z0-9])(?:as\s+needed|p\.?r\.?n\.?|if\s+(?:you\s+)?need(?:ed)?|when\s+(?:you\s+)?need(?:ed)?)(?![a-z0-9])",
             re.IGNORECASE,
         ),
     ),
@@ -273,7 +276,7 @@ FREQUENCY_MODIFIER_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 )
 
 DOSE_TOKEN_PATTERN: re.Pattern[str] = re.compile(
-    r"(?<![a-z0-9.])(\d+(?:\.\d+)?)\s*(mg|mcg|ug|g|ml|meq|units?|iu|tablets?|tabs?|capsules?|caps?|puffs?|drops?|patches?|%)(?![a-z0-9])",
+    r"(?<![a-z0-9./])(\d+(?:\.\d+)?(?:/\d+(?:\.\d+)?)*)\s*(mg|mcg|ug|g|ml|meq|units?|iu|tablets?|tabs?|capsules?|caps?|puffs?|drops?|patches?|%)(?![a-z0-9/])",
     re.IGNORECASE,
 )
 
@@ -331,8 +334,9 @@ UNCERTAIN_NEGATION_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
 )
 
 # Governed verb-phrase negation patterns that mean "no medication change/start/stop/hold occurred"
+# Guarded with negative lookahead so exception clauses ("... except warfarin") are never stripped.
 SAFE_GOVERNED_NEGATION_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
-    re.compile(pattern, re.IGNORECASE)
+    re.compile(pattern + r"(?!\s+(?:except|other\s+than|unless|excluding)\b)", re.IGNORECASE)
     for pattern in (
         r"\bno\s+changes?\s+to\s+(?:your\s+|the\s+|home\s+)?medications?(?:\s+is\s+required|\s+are\s+required|\s+needed|\s+were\s+made)?\b",
         r"\bmedications?\s+remains?\s+unchanged\b",
@@ -409,7 +413,7 @@ NEW_START_CUE_PATTERN: re.Pattern[str] = re.compile(
 )
 
 CONTINUE_CUE_PATTERN: re.Pattern[str] = re.compile(
-    r"(?<![a-z0-9])(?:continu(?:e|ed|ing)|keep\s+taking|resum(?:e|ed|ing)|remain\s+on|stay\s+on|take\s+(?:your\s+|the\s+)?(?:home|prior|usual)\s+medication|(?:home\s+medications?:?.*\btake\b|\btake\b.*\b(?:as\s+before|home\s+medication|prior\s+to\s+admission|previously)))(?![a-z0-9])",
+    r"(?<![a-z0-9])(?:continu(?:e|ed|ing)|keep\s+taking|resum(?:e|ed|ing)|remain\s+on|stay\s+on|take\s+(?:your\s+|the\s+)?(?:home|prior|usual)\s+medication|(?:home\s+medications?:?.*\btake\b|\btake\b.*\b(?:as\s+before|home\s+medication|prior\s+to\s+admission|previously|only\s+if\s+needed|as\s+needed\s+for)))(?![a-z0-9])",
     re.IGNORECASE,
 )
 
@@ -548,9 +552,12 @@ CLOSED_TEMPLATE_VOCABULARY: frozenset[str] = frozenset(
         "it",
         "keep",
         "medication",
+        "Monitor",
         "monitor",
         "morning",
         "mouth",
+        "need",
+        "needed",
         "not",
         "noted",
         "of",
@@ -591,6 +598,7 @@ CLOSED_TEMPLATE_VOCABULARY: frozenset[str] = frozenset(
         "when",
         "with",
         "within",
+        "you",
         "your",
     }
 )
@@ -687,6 +695,141 @@ WORD_NUMBER_MAP: dict[str, int] = {
     "seventy-two": 72,
     "seventy two": 72,
 }
+
+MONTH_NAME_TO_NUMBER: dict[str, int] = {
+    "jan": 1,
+    "january": 1,
+    "feb": 2,
+    "february": 2,
+    "mar": 3,
+    "march": 3,
+    "apr": 4,
+    "april": 4,
+    "may": 5,
+    "jun": 6,
+    "june": 6,
+    "jul": 7,
+    "july": 7,
+    "aug": 8,
+    "august": 8,
+    "sep": 9,
+    "sept": 9,
+    "september": 9,
+    "oct": 10,
+    "october": 10,
+    "nov": 11,
+    "november": 11,
+    "dec": 12,
+    "december": 12,
+}
+
+NON_DRUG_PRE_DOSE_TOKENS: frozenset[str] = frozenset(
+    {
+        "take",
+        "taking",
+        "continue",
+        "continuing",
+        "start",
+        "starting",
+        "begin",
+        "beginning",
+        "initiate",
+        "initiating",
+        "add",
+        "added",
+        "resume",
+        "resuming",
+        "hold",
+        "holding",
+        "withhold",
+        "withholding",
+        "stop",
+        "stopping",
+        "discontinue",
+        "discontinuing",
+        "increase",
+        "increased",
+        "increasing",
+        "decrease",
+        "decreased",
+        "decreasing",
+        "reduce",
+        "reduced",
+        "reducing",
+        "change",
+        "changed",
+        "changing",
+        "to",
+        "from",
+        "at",
+        "of",
+        "by",
+        "for",
+        "with",
+        "about",
+        "around",
+        "up",
+        "down",
+        "than",
+        "more",
+        "less",
+        "greater",
+        "fewer",
+        "least",
+        "most",
+        "oral",
+        "orally",
+        "po",
+        "iv",
+        "sc",
+        "sq",
+        "im",
+        "sl",
+        "daily",
+        "twice",
+        "once",
+        "every",
+        "then",
+        "give",
+        "dose",
+        "doses",
+    }
+)
+
+NON_DRUG_POST_VERB_TOKENS: frozenset[str] = frozenset(
+    {
+        "taking",
+        "medication",
+        "medications",
+        "home",
+        "your",
+        "the",
+        "a",
+        "an",
+        "therapy",
+        "treatment",
+        "dose",
+        "doses",
+        "regimen",
+        "immediately",
+        "now",
+        "after",
+        "before",
+        "when",
+        "if",
+        "until",
+        "unless",
+        "as",
+        "at",
+        "in",
+        "on",
+        "for",
+        "all",
+        "new",
+        "prior",
+        "usual",
+    }
+)
 
 RECURRENCE_TIMEFRAME_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
     re.compile(pattern, re.IGNORECASE)
@@ -790,23 +933,43 @@ def resolve_canonical_medication_name(name: str) -> str:
     """Resolve a medication name to its canonical generic identity using the synthetic alias map."""
     norm = canonicalize_text(name)
     base = re.sub(r"\s*\([^)]*\)\s*", " ", norm).strip()
-    return SYNTHETIC_DRUG_ALIASES.get(base, SYNTHETIC_DRUG_ALIASES.get(norm, base))
+    if base in SYNTHETIC_DRUG_ALIASES:
+        return SYNTHETIC_DRUG_ALIASES[base]
+    if norm in SYNTHETIC_DRUG_ALIASES:
+        return SYNTHETIC_DRUG_ALIASES[norm]
+    slash_base = base.replace("-", "/")
+    if slash_base in SYNTHETIC_DRUG_ALIASES:
+        return SYNTHETIC_DRUG_ALIASES[slash_base]
+    return base
 
 
 def get_medication_equivalents(name: str) -> frozenset[str]:
-    """Return all known casefolded brand/generic aliases for a medication name."""
+    """Return all known casefolded brand/generic aliases (and hyphen/slash combination variants) for a medication name."""
     norm = canonicalize_text(name)
     canonical = resolve_canonical_medication_name(name)
-    if canonical in CANONICAL_TO_ALIASES:
-        return CANONICAL_TO_ALIASES[canonical] | {norm}
-    return frozenset({norm, canonical})
+    base_set = set(CANONICAL_TO_ALIASES.get(canonical, frozenset())) | {norm, canonical}
+    expanded: set[str] = set()
+    for item in base_set:
+        expanded.add(item)
+        if "-" in item:
+            expanded.add(item.replace("-", "/"))
+        if "/" in item:
+            expanded.add(item.replace("/", "-"))
+    return frozenset(expanded)
+
+
+def _normalize_single_num_str(num_part: str) -> str:
+    if "." in num_part:
+        return num_part.rstrip("0").rstrip(".")
+    return num_part.lstrip("0") or "0"
 
 
 def parse_doses(text: str) -> list[tuple[str, str]]:
     """Parse all (number, canonical_unit) dose tuples with strict boundaries.
 
-    '5 mg' -> ('5', 'mg'); '2.5 mg' -> ('2.5', 'mg'); '50 mcg' -> ('50', 'mcg').
-    '5 mg' never matches inside '2.5 mg' or '15 mg', and 'mg' != 'mcg'.
+    '5 mg' -> ('5', 'mg'); '2.5 mg' -> ('2.5', 'mg'); '50 mcg' -> ('50', 'mcg');
+    '49/51 mg' -> ('49/51', 'mg').
+    '5 mg' never matches inside '2.5 mg', '15 mg', or '49/51 mg', and 'mg' != 'mcg'.
     """
     canon = canonicalize_text(text)
     results: list[tuple[str, str]] = []
@@ -814,11 +977,10 @@ def parse_doses(text: str) -> list[tuple[str, str]]:
         num_str = m.group(1)
         unit_raw = m.group(2).casefold()
         unit_canon = UNIT_CANONICAL_MAP.get(unit_raw, unit_raw)
-        # Normalize trailing .0 if integer, else preserve exact decimal representation
-        if "." in num_str:
-            num_norm = num_str.rstrip("0").rstrip(".")
+        if "/" in num_str:
+            num_norm = "/".join(_normalize_single_num_str(p) for p in num_str.split("/"))
         else:
-            num_norm = num_str.lstrip("0") or "0"
+            num_norm = _normalize_single_num_str(num_str)
         results.append((num_norm, unit_canon))
     return results
 
@@ -869,7 +1031,7 @@ def _extract_timeframe_qualifier(norm_tf: str) -> str:
 
 
 def normalize_timeframe(raw_timeframe: str | None) -> str | None:
-    """Normalize a follow-up timeframe into 'QUALIFIER:AMOUNT:UNIT' while preserving qualifiers."""
+    """Normalize a follow-up timeframe into 'QUALIFIER:AMOUNT:UNIT' or 'QUALIFIER:DATE:YYYY-MM-DD'."""
     if _is_missing_or_unknown(raw_timeframe):
         return None
     assert raw_timeframe is not None
@@ -880,9 +1042,37 @@ def normalize_timeframe(raw_timeframe: str | None) -> str | None:
             return None
 
     qualifier = _extract_timeframe_qualifier(norm)
-    if qualifier == "APPROX":
-        # Approximate timeframes ('in about 2 weeks') cannot be treated as exact 'IN' or 'WITHIN'
-        pass
+
+    # Check explicit calendar date patterns (e.g., 'on 04 Dec 2026', 'Dec 18, 2026', '2026-12-04')
+    m_dmy = re.search(
+        r"\b(\d{1,2})\s+(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[.,]?\s+(\d{4})\b",
+        norm,
+    )
+    if m_dmy:
+        day = int(m_dmy.group(1))
+        month = MONTH_NAME_TO_NUMBER.get(m_dmy.group(2), 0)
+        year = int(m_dmy.group(3))
+        if 1 <= month <= 12 and 1 <= day <= 31:
+            return f"{qualifier}:DATE:{year:04d}-{month:02d}-{day:02d}"
+
+    m_mdy = re.search(
+        r"\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[.,]?\s+(\d{1,2})(?:,|\s)+(\d{4})\b",
+        norm,
+    )
+    if m_mdy:
+        month = MONTH_NAME_TO_NUMBER.get(m_mdy.group(1), 0)
+        day = int(m_mdy.group(2))
+        year = int(m_mdy.group(3))
+        if 1 <= month <= 12 and 1 <= day <= 31:
+            return f"{qualifier}:DATE:{year:04d}-{month:02d}-{day:02d}"
+
+    m_iso = re.search(r"\b(\d{4})-(\d{2})-(\d{2})\b", norm)
+    if m_iso:
+        year = int(m_iso.group(1))
+        month = int(m_iso.group(2))
+        day = int(m_iso.group(3))
+        if 1 <= month <= 12 and 1 <= day <= 31:
+            return f"{qualifier}:DATE:{year:04d}-{month:02d}-{day:02d}"
 
     working = norm
     for word_num in (
@@ -964,44 +1154,84 @@ def _split_into_clauses(sentence_canon: str) -> list[str]:
     return [p for p in parts if p]
 
 
+def _clause_mentions_other_drug(
+    cl: str, target_equivalents: frozenset[str]
+) -> bool:
+    """Return True if clause `cl` names a medication distinct from `target_equivalents`.
+
+    Elliptical clauses for the same drug (e.g. 'take 80 mg on days when weight is up more than 3 lb'
+    or 'stop' in 'Take prednisone 20 mg daily for 5 days, then stop') do NOT name another drug
+    and return False so they stay bound to the target drug's clause.
+    """
+    if any(
+        re.search(rf"(?<![a-z0-9/-]){re.escape(eq)}(?![a-z0-9/-])", cl)
+        for eq in target_equivalents
+    ):
+        return False
+
+    # 1. Check known drug lexicon
+    for alias, pat in ALL_KNOWN_DRUG_PATTERNS:
+        if alias not in target_equivalents and pat.search(cl):
+            return True
+
+    # 2. Check out-of-lexicon drug token immediately preceding a dose
+    for m_pre in re.finditer(
+        r"\b([a-z][a-z0-9/-]{2,})\s+\d+(?:\.\d+)?(?:/\d+(?:\.\d+)?)*\s*(?:mg|mcg|ug|g|ml|meq|units?|iu|tablets?|tabs?|capsules?|caps?|puffs?|drops?|patches?|%)\b",
+        cl,
+    ):
+        cand = m_pre.group(1)
+        if (
+            cand not in NON_DRUG_PRE_DOSE_TOKENS
+            and cand not in target_equivalents
+        ):
+            return True
+
+    # 3. Check out-of-lexicon drug token immediately following a medication action verb
+    for m_post in re.finditer(
+        r"\b(?:stop|discontinue|d/c|dc|hold|withhold|start|initiate|continue|resume)\s+([a-z][a-z0-9/-]{2,})\b",
+        cl,
+    ):
+        cand = m_post.group(1)
+        if (
+            cand not in NON_DRUG_POST_VERB_TOKENS
+            and cand not in target_equivalents
+        ):
+            return True
+
+    return False
+
+
 def _extract_drug_clauses(
     ev_canon: str, med_equivalents: frozenset[str]
 ) -> tuple[str, bool]:
-    """Extract the clause(s) within ev_canon that mention the target medication.
+    """Extract the clause(s) within ev_canon that apply to the target medication.
 
     In a multi-drug sentence like 'Continue atorvastatin 40 mg and amlodipine 5 mg daily':
     - Clause 1: 'continue atorvastatin 40 mg' (mentions atorvastatin)
-    - Clause 2: 'amlodipine 5 mg daily' (mentions amlodipine)
-    If a clause mentions ANOTHER known drug and NOT the target drug, fields in that other
+    - Clause 2: 'amlodipine 5 mg daily' (mentions amlodipine -> other drug)
+    If a clause mentions ANOTHER drug and NOT the target drug, fields in that other
     clause cannot be used to support the target drug's dosage/action.
-    Shared trailing frequency/route on a coordinated clause is permitted only if the
-    target drug's own clause does not specify a conflicting value, whereas dosage must
-    reside in the target drug's own clause when multiple drugs with doses are present.
+    Conversely, elliptical clauses that do not name another drug (e.g. 'take 80 mg on days when...'
+    or 'stop' after 'then') remain bound to the target medication's clause.
     """
     clauses = _split_into_clauses(ev_canon)
     if len(clauses) <= 1:
         return ev_canon, False
 
-    # Identify which known drugs or dose-bearing/action-bearing drug clauses appear
     clause_mentions_target: list[bool] = []
     clause_has_other_drug: list[bool] = []
     for cl in clauses:
         mentions_target = any(
-            re.search(rf"(?<![a-z0-9]){re.escape(eq)}(?![a-z0-9])", cl)
+            re.search(rf"(?<![a-z0-9/-]){re.escape(eq)}(?![a-z0-9/-])", cl)
             for eq in med_equivalents
         )
         clause_mentions_target.append(mentions_target)
         if mentions_target:
             clause_has_other_drug.append(False)
         else:
-            has_known_drug = any(pat.search(cl) for _, pat in ALL_KNOWN_DRUG_PATTERNS)
-            has_dose_or_action = bool(
-                parse_doses(cl)
-                or CONTINUE_CUE_PATTERN.search(cl)
-                or BARE_TAKE_CUE_PATTERN.search(cl)
-                or any(p.search(cl) for p in STOP_START_PATTERNS)
+            clause_has_other_drug.append(
+                _clause_mentions_other_drug(cl, med_equivalents)
             )
-            clause_has_other_drug.append(has_known_drug or has_dose_or_action)
 
     is_multi_drug = any(clause_has_other_drug) and any(clause_mentions_target)
     if not is_multi_drug:
@@ -1423,8 +1653,345 @@ class SafetyValidator:
                 ev_norm=ev_norm,
                 allow_template_vocab=True,
             )
+            self._verify_summary_semantic_preservation(
+                item=item,
+                summary_text=item.patient_friendly_summary,
+                ev_norm=ev_norm,
+            )
 
         return evidence_verified
+
+    @staticmethod
+    def _stem_token(tok: str) -> str:
+        """Normalize simple English inflections for morphological token matching."""
+        if len(tok) > 5 and tok.endswith("ing"):
+            base = tok[:-3]
+            if len(base) >= 3 and base[-1] == base[-2]:
+                base = base[:-1]
+            return base
+        if len(tok) > 4 and tok.endswith("ed"):
+            return tok[:-2]
+        if len(tok) > 4 and tok.endswith("es"):
+            return tok[:-2]
+        if len(tok) > 3 and tok.endswith("s") and not tok.endswith("ss"):
+            return tok[:-1]
+        return tok
+
+    def _verify_summary_semantic_preservation(
+        self,
+        item: ExtractedItemBase,
+        summary_text: str,
+        ev_norm: str,
+    ) -> None:
+        """Requirement 2 & 3: Enforce semantic qualifier, threshold, duration, and condition preservation in patient_friendly_summary."""
+        if not ev_norm:
+            return
+        if any(f.code == HazardCode.UNSUPPORTED_FIELD_VALUE for f in item.safety_flags):
+            return
+
+        ev_effective = _strip_negated_clauses(ev_norm)
+        if isinstance(item, MedicationInstruction):
+            ev_effective, _ = _extract_drug_clauses(
+                ev_effective, get_medication_equivalents(item.medication_name)
+            )
+        if not ev_effective:
+            return
+
+        summary_norm = canonicalize_text(summary_text)
+
+        def _flag_loss(detail: str) -> None:
+            item.safety_flags.append(
+                SafetyFlag(
+                    code=HazardCode.UNSUPPORTED_FIELD_VALUE,
+                    severity=HazardSeverity.CRITICAL,
+                    message=(
+                        f"Patient-friendly summary on '{item.id}' loses clinically significant "
+                        f"qualifier or specificity from source evidence ({detail})."
+                    ),
+                    item_id=item.id,
+                    requires_human_review=True,
+                    evidence_snippet=summary_text[:200],
+                )
+            )
+
+        # 1. Every dose in ev_effective must be preserved in summary_norm
+        ev_doses = parse_doses(ev_effective)
+        sum_doses = set(parse_doses(summary_norm))
+        for dose_tuple in ev_doses:
+            if dose_tuple not in sum_doses:
+                _flag_loss(f"omitted dose '{dose_tuple[0]} {dose_tuple[1]}'")
+                return
+
+        # 2. Semantic qualifier categories
+        qualifier_rules: tuple[tuple[str, re.Pattern[str], re.Pattern[str]], ...] = (
+            (
+                "exclusive condition ('only if' / 'only when')",
+                re.compile(r"\bonly\s+(?:if|when)\b"),
+                re.compile(r"\bonly\s+(?:if|when)\b"),
+            ),
+            (
+                "exclusivity qualifier ('only')",
+                re.compile(r"\bonly\b"),
+                re.compile(r"\bonly\b"),
+            ),
+            (
+                "conditional qualifier ('if' / 'when' / 'whenever')",
+                re.compile(r"\b(?:if|when|whenever|in\s+case)\b"),
+                re.compile(r"\b(?:if|when|whenever|in\s+case|should)\b"),
+            ),
+            (
+                "exception qualifier ('unless' / 'except')",
+                re.compile(r"\b(?:unless|except(?:\s+for)?|other\s+than|excluding)\b"),
+                re.compile(r"\b(?:unless|except(?:\s+for)?|other\s+than|excluding|do\s+not)\b"),
+            ),
+            (
+                "duration bound ('until')",
+                re.compile(r"\buntil\b"),
+                re.compile(r"\buntil\b"),
+            ),
+            (
+                "temporal qualifier ('before' / 'prior to')",
+                re.compile(r"(?<!\bas\s)\b(?:before|prior\s+to)\b"),
+                re.compile(r"\b(?:before|prior\s+to)\b"),
+            ),
+            (
+                "temporal qualifier ('after')",
+                re.compile(r"\b(?:after|following)\b"),
+                re.compile(r"\b(?:after|following)\b"),
+            ),
+            (
+                "concurrent qualifier ('while')",
+                re.compile(r"\bwhile\b"),
+                re.compile(r"\b(?:while|during|when)\b"),
+            ),
+            (
+                "PRN / as-needed qualifier",
+                re.compile(r"\b(?:as\s+needed|p\.?r\.?n\.?|if\s+needed|when\s+needed)\b"),
+                re.compile(
+                    r"\b(?:as\s+needed|p\.?r\.?n\.?|if\s+(?:you\s+)?need(?:ed)?|when\s+(?:you\s+)?need(?:ed)?|need(?:ed)?\s+it)\b"
+                ),
+            ),
+            (
+                "upper threshold ('more than' / 'greater than' / 'exceeds' / 'above' / '>')",
+                re.compile(r"(?:\b(?:more\s+than|greater\s+than|over|above|exceeds?|exceeding)\b|>)"),
+                re.compile(r"(?:\b(?:more\s+than|greater\s+than|over|above|exceeds?|exceeding)\b|>)"),
+            ),
+            (
+                "lower threshold ('less than' / 'below' / 'under' / '<')",
+                re.compile(r"(?:\b(?:less\s+than|under|below|fewer\s+than)\b|<)"),
+                re.compile(r"(?:\b(?:less\s+than|under|below|fewer\s+than)\b|<)"),
+            ),
+            (
+                "minimum threshold ('at least')",
+                re.compile(r"\b(?:at\s+least|minimum\s+of)\b"),
+                re.compile(r"\b(?:at\s+least|minimum\s+of)\b"),
+            ),
+            (
+                "maximum threshold ('no more than' / 'at most')",
+                re.compile(r"\b(?:no\s+more\s+than|at\s+most|maximum\s+of)\b"),
+                re.compile(r"\b(?:no\s+more\s+than|at\s+most|maximum\s+of)\b"),
+            ),
+            (
+                "bounded timeframe qualifier ('within')",
+                re.compile(r"\b(?:within|no\s+later\s+than|in\s+under)\b"),
+                re.compile(r"\b(?:within|no\s+later\s+than|in\s+under)\b"),
+            ),
+            (
+                "finite course duration ('for X days/weeks/months')",
+                re.compile(
+                    r"\bfor\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fourteen)\s*(?:hours?|hrs?|days?|weeks?|wks?|months?|mos?)\b"
+                ),
+                re.compile(
+                    r"\bfor\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fourteen)\s*(?:hours?|hrs?|days?|weeks?|wks?|months?|mos?)\b"
+                ),
+            ),
+            (
+                "sequential directive ('then')",
+                re.compile(r"\b(?:then|afterward|thereafter)\b"),
+                re.compile(r"\b(?:then|afterward|thereafter)\b"),
+            ),
+            (
+                "alternative directive ('otherwise')",
+                re.compile(r"\botherwise\b"),
+                re.compile(r"\botherwise\b"),
+            ),
+            (
+                "stop/discontinue directive",
+                re.compile(r"\b(?:stop|discontinue|d/c)\b"),
+                re.compile(r"\b(?:stop|discontinue|d/c)\b"),
+            ),
+            (
+                "hold/withhold directive",
+                re.compile(r"\b(?:hold|withhold|pause|skip)\b"),
+                re.compile(r"\b(?:hold|withhold|pause|skip)\b"),
+            ),
+            (
+                "resume directive",
+                re.compile(r"\bresum(?:e|ing)\b"),
+                re.compile(r"\bresum(?:e|ing)\b"),
+            ),
+            (
+                "negation directive ('do not' / 'never' / 'not')",
+                re.compile(r"\b(?:do\s+not|don'?t|never|not|no\s+longer|avoid)\b"),
+                re.compile(
+                    r"\b(?:do\s+not|don'?t|never|not|no\s+longer|avoid|stop|unless|except)\b"
+                ),
+            ),
+        )
+        for rule_label, src_pat, sum_pat in qualifier_rules:
+            if src_pat.search(ev_effective) and not sum_pat.search(summary_norm):
+                _flag_loss(f"dropped {rule_label}")
+                return
+
+        # 3. Numeric thresholds, durations, and quantities in ev_effective must be preserved
+        ev_nums = set(RE_NUMBER_TOKEN.findall(ev_effective))
+        sum_nums = set(RE_NUMBER_TOKEN.findall(summary_norm))
+        for w_num, digit in WORD_NUMBER_MAP.items():
+            if w_num not in ("a", "an") and _has_word_boundary_match(w_num, summary_norm):
+                sum_nums.add(str(digit))
+        tf_equivalent = (
+            normalize_timeframe(ev_effective) is not None
+            and normalize_timeframe(ev_effective) == normalize_timeframe(summary_norm)
+        )
+        for num_tok in ev_nums:
+            if num_tok not in sum_nums and not tf_equivalent:
+                _flag_loss(f"omitted numeric value '{num_tok}'")
+                return
+
+        # 4. Follow-up / task timeframe qualifier and normalized value preservation
+        if isinstance(item, (FollowUpInstruction, CareTaskItem)):
+            ev_tf = normalize_timeframe(ev_effective)
+            sum_tf = normalize_timeframe(summary_norm)
+            if ev_tf is not None and sum_tf != ev_tf:
+                _flag_loss(f"timeframe changed from '{ev_tf}' to '{sum_tf}'")
+                return
+
+        # 5. Warning-sign urgency cues and critical red-flag symptoms preservation
+        if isinstance(item, WarningSignInstruction):
+            if EMERGENT_CUE_REGEX.search(ev_effective) and not EMERGENT_CUE_REGEX.search(
+                summary_norm
+            ):
+                _flag_loss("dropped emergency action cue")
+                return
+            if URGENT_CUE_REGEX.search(ev_effective) and not (
+                URGENT_CUE_REGEX.search(summary_norm)
+                or EMERGENT_CUE_REGEX.search(summary_norm)
+            ):
+                _flag_loss("dropped urgent action cue")
+                return
+            for rf_pat in CRITICAL_RED_FLAG_PATTERNS:
+                if rf_pat.search(ev_effective) and not rf_pat.search(summary_norm):
+                    _flag_loss("omitted critical red-flag symptom from summary")
+                    return
+
+        # 6. Content tokens inside qualifying clauses (conditions, indications, exceptions, timing)
+        qualifier_stop_words = {
+            "a",
+            "an",
+            "the",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "to",
+            "of",
+            "in",
+            "on",
+            "at",
+            "by",
+            "with",
+            "it",
+            "you",
+            "your",
+            "or",
+            "and",
+            "as",
+            "if",
+            "when",
+            "whenever",
+            "only",
+            "unless",
+            "except",
+            "until",
+            "before",
+            "prior",
+            "after",
+            "while",
+            "for",
+            "needed",
+            "need",
+            "noted",
+            "note",
+            "happens",
+            "happen",
+            "occurs",
+            "occur",
+            "present",
+            "day",
+            "days",
+            "week",
+            "weeks",
+            "month",
+            "months",
+            "hour",
+            "hours",
+            "time",
+            "times",
+            "daily",
+            "every",
+            "once",
+            "twice",
+            "three",
+            "four",
+            "five",
+            "six",
+            "seven",
+            "eight",
+            "nine",
+            "ten",
+            "twelve",
+            "fourteen",
+            "more",
+            "less",
+            "greater",
+            "fewer",
+            "than",
+            "above",
+            "below",
+            "over",
+            "under",
+            "up",
+            "exceeds",
+            "exceeding",
+        }
+        sum_word_tokens = set(RE_WORD_TOKEN.findall(summary_norm))
+        sum_stems = {self._stem_token(t) for t in sum_word_tokens}
+        synonym_groups = (
+            frozenset({"lb", "lbs", "pound", "pounds"}),
+            frozenset({"dizzy", "dizziness"}),
+            frozenset({"seen", "see", "visit", "evaluated"}),
+        )
+
+        for m_qual in re.finditer(
+            r"\b(?:only\s+if|if|when|whenever|unless|except(?:\s+for)?|until|(?<!as\s)before|prior\s+to|after|while|for)\s+([^.;,]+)",
+            ev_effective,
+        ):
+            phrase = m_qual.group(1)
+            for w in RE_WORD_TOKEN.findall(phrase):
+                if w in qualifier_stop_words or RE_NUMBER_TOKEN.fullmatch(w):
+                    continue
+                w_stem = self._stem_token(w)
+                matched = w in sum_word_tokens or w_stem in sum_stems
+                if not matched:
+                    for s_grp in synonym_groups:
+                        if w in s_grp and any(alt in sum_word_tokens for alt in s_grp):
+                            matched = True
+                            break
+                if not matched:
+                    _flag_loss(f"omitted qualifying detail '{w}'")
+                    return
 
     def _verify_free_text_whitelist(
         self,
@@ -1565,13 +2132,15 @@ class SafetyValidator:
 
         # Whitelist token check: every word token in free_text must be in ev_norm or CLOSED_TEMPLATE_VOCABULARY
         ev_tokens = set(RE_WORD_TOKEN.findall(ev_norm))
-        # Expand ev_tokens with known equivalents of drugs/routes/frequencies present in ev_norm
+        ev_stems = {self._stem_token(t) for t in ev_tokens}
         allowed_tokens = set(ev_tokens)
+        if isinstance(item, MedicationInstruction):
+            allowed_tokens |= get_medication_equivalents(item.medication_name)
         if allow_template_vocab:
             allowed_tokens |= CLOSED_TEMPLATE_VOCABULARY
 
         for tok in word_tokens:
-            if tok in allowed_tokens:
+            if tok in allowed_tokens or self._stem_token(tok) in ev_stems:
                 continue
             if RE_NUMBER_TOKEN.fullmatch(tok) and tok in ev_numbers:
                 continue
@@ -1709,6 +2278,133 @@ class SafetyValidator:
                             message=(
                                 f"Extracted dosage '{med.dosage}' for '{med.medication_name}' "
                                 "is not supported by the medication's clause in source evidence."
+                            ),
+                            item_id=med.id,
+                            requires_human_review=True,
+                            evidence_snippet=source_quote,
+                        )
+                    )
+                else:
+                    # Check if the medication's clause contains an additional/conditional dose
+                    # (e.g., 'Take furosemide 40 mg daily, and take 80 mg on days when weight is up more than 3 lb')
+                    # that was omitted from extracted dosage/previous_dosage/indication_or_note
+                    prev_doses_set = set(parse_doses(med.previous_dosage or ""))
+                    note_doses_set = set(parse_doses(med.indication_or_note or ""))
+                    has_change_verb = any(
+                        p.search(clause_norm) for p in MED_CHANGE_PATTERNS
+                    )
+                    unaccounted_doses = [
+                        d
+                        for d in clause_doses
+                        if d not in extracted_doses
+                        and d not in prev_doses_set
+                        and d not in note_doses_set
+                    ]
+                    if unaccounted_doses and not has_change_verb:
+                        med.safety_flags.append(
+                            SafetyFlag(
+                                code=HazardCode.UNSUPPORTED_FIELD_VALUE,
+                                severity=HazardSeverity.CRITICAL,
+                                message=(
+                                    f"Extracted dosage '{med.dosage}' for '{med.medication_name}' omits "
+                                    f"secondary or conditional dose(s) {unaccounted_doses} present in the medication's clause."
+                                ),
+                                item_id=med.id,
+                                requires_human_review=True,
+                                evidence_snippet=source_quote,
+                            )
+                        )
+                        med.safety_flags.append(
+                            SafetyFlag(
+                                code=HazardCode.OMITTED_INSTRUCTION,
+                                severity=HazardSeverity.CRITICAL,
+                                message=(
+                                    f"Secondary or conditional dosing instruction {unaccounted_doses} for "
+                                    f"'{med.medication_name}' was omitted from extraction."
+                                ),
+                                item_id=med.id,
+                                requires_human_review=True,
+                                evidence_snippet=source_quote,
+                            )
+                        )
+                        med.safety_flags.append(
+                            SafetyFlag(
+                                code=HazardCode.INCOMPLETE_EXTRACTION,
+                                severity=HazardSeverity.CRITICAL,
+                                message=(
+                                    f"Incomplete extraction of multi-part dosing regimen for '{med.medication_name}'."
+                                ),
+                                item_id=med.id,
+                                requires_human_review=True,
+                                evidence_snippet=source_quote,
+                            )
+                        )
+
+            # Check if a finite duration ('for 5 days') or conditional hold/exception ('unless ...', 'until ...', 'if heart rate ...')
+            # in the medication's clause was omitted from structured fields (frequency / indication_or_note)
+            if med_supported_by_evidence and clause_norm:
+                structured_qual_text = canonicalize_text(
+                    f"{med.frequency or ''} {med.indication_or_note or ''}"
+                )
+                finite_dur_match = re.search(
+                    r"\bfor\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fourteen)\s*(?:days?|weeks?|months?)\b",
+                    clause_norm,
+                )
+                cond_exception_match = re.search(
+                    r"\b(?:unless|except(?:\s+for)?|until|on\s+days\s+when|if\s+(?:heart\s+rate|blood\s+pressure|bp|hr|pulse|weight|serum|potassium|creatinine|glucose|blood\s+sugar|dizzy|lightheaded|systolic|diastolic))\b",
+                    clause_norm,
+                )
+                if finite_dur_match and not _has_word_boundary_match(
+                    finite_dur_match.group(0), structured_qual_text
+                ):
+                    med.safety_flags.append(
+                        SafetyFlag(
+                            code=HazardCode.OMITTED_INSTRUCTION,
+                            severity=HazardSeverity.CRITICAL,
+                            message=(
+                                f"Finite course duration ('{finite_dur_match.group(0)}') for "
+                                f"'{med.medication_name}' was omitted from structured medication fields."
+                            ),
+                            item_id=med.id,
+                            requires_human_review=True,
+                            evidence_snippet=source_quote,
+                        )
+                    )
+                    med.safety_flags.append(
+                        SafetyFlag(
+                            code=HazardCode.INCOMPLETE_EXTRACTION,
+                            severity=HazardSeverity.CRITICAL,
+                            message=(
+                                f"Incomplete extraction: finite duration '{finite_dur_match.group(0)}' "
+                                f"omitted for '{med.medication_name}'."
+                            ),
+                            item_id=med.id,
+                            requires_human_review=True,
+                            evidence_snippet=source_quote,
+                        )
+                    )
+                if cond_exception_match and not _has_word_boundary_match(
+                    cond_exception_match.group(0), structured_qual_text
+                ):
+                    med.safety_flags.append(
+                        SafetyFlag(
+                            code=HazardCode.OMITTED_INSTRUCTION,
+                            severity=HazardSeverity.CRITICAL,
+                            message=(
+                                f"Conditional administration/hold/exception qualifier ('{cond_exception_match.group(0)}...') "
+                                f"for '{med.medication_name}' was omitted from structured medication fields."
+                            ),
+                            item_id=med.id,
+                            requires_human_review=True,
+                            evidence_snippet=source_quote,
+                        )
+                    )
+                    med.safety_flags.append(
+                        SafetyFlag(
+                            code=HazardCode.INCOMPLETE_EXTRACTION,
+                            severity=HazardSeverity.CRITICAL,
+                            message=(
+                                f"Incomplete extraction: clinical condition/exception omitted for '{med.medication_name}'."
                             ),
                             item_id=med.id,
                             requires_human_review=True,
@@ -1985,13 +2681,13 @@ class SafetyValidator:
                 )
             )
 
-        # 5. Intra-document silent conflict check (including brand/generic aliases, d/c, hold, stop)
+        # 5. Intra-document silent conflict check (including brand/generic aliases, d/c, hold, stop, or conflicting dose in medication list)
         doc_without_negations = _strip_negated_clauses(normalized_doc)
         if med.action == MedicationAction.CONTINUE:
             for alias in med_equivalents:
                 alias_esc = re.escape(alias)
                 contradictory_stop = re.search(
-                    rf"(?<![a-z0-9])(?:stop(?:\s+taking)?|discontinu(?:e|ed|ing)|d/c(?:'?d)?|dc(?:'d)?|do\s+not\s+take|hold|withhold)\s+{alias_esc}(?![a-z0-9])",
+                    rf"(?<![a-z0-9/-])(?:stop(?:\s+taking)?|discontinu(?:e|ed|ing)|d/c(?:'?d)?|dc(?:'d)?|do\s+not\s+take|hold|withhold)\s+{alias_esc}(?![a-z0-9/-])",
                     doc_without_negations,
                     re.IGNORECASE,
                 )
@@ -2011,6 +2707,50 @@ class SafetyValidator:
                         )
                     )
                     break
+
+        # Also check if another sentence/clause in the document specifies a conflicting dose for the same medication
+        if not _is_missing_or_unknown(med.dosage) and not any(
+            f.code == HazardCode.CONFLICTING_INSTRUCTIONS for f in med.safety_flags
+        ):
+            ext_doses_set = set(parse_doses(med.dosage or ""))
+            prev_doses_set = set(parse_doses(med.previous_dosage or ""))
+            if ext_doses_set:
+                for raw_line in normalized_doc.splitlines():
+                    for sent_part in SENTENCE_SPLIT_REGEX.split(raw_line):
+                        sent_clean = _strip_negated_clauses(sent_part)
+                        if not sent_clean:
+                            continue
+                        if any(
+                            _has_word_boundary_match(alias, sent_clean)
+                            for alias in med_equivalents
+                        ):
+                            bound_cl, _ = _extract_drug_clauses(
+                                sent_clean, med_equivalents
+                            )
+                            cl_doses = set(parse_doses(bound_cl))
+                            has_change_in_sent = any(
+                                p.search(bound_cl) for p in MED_CHANGE_PATTERNS
+                            )
+                            if (
+                                cl_doses
+                                and not cl_doses.issubset(ext_doses_set | prev_doses_set)
+                                and not has_change_in_sent
+                            ):
+                                med.safety_flags.append(
+                                    SafetyFlag(
+                                        code=HazardCode.CONFLICTING_INSTRUCTIONS,
+                                        severity=HazardSeverity.CRITICAL,
+                                        message=(
+                                            f"Conflicting dosage instructions detected in discharge text for "
+                                            f"'{med.medication_name}': extracted {sorted(ext_doses_set)} vs "
+                                            f"document clause with {sorted(cl_doses)}."
+                                        ),
+                                        item_id=med.id,
+                                        requires_human_review=True,
+                                        evidence_snippet=source_quote or None,
+                                    )
+                                )
+                                break
 
     def _verify_medication_action_support(
         self,
@@ -2843,6 +3583,28 @@ class SafetyValidator:
                     )
                 continue
 
+            # Check governed negation with an exception clause (e.g. 'No home medications were stopped except warfarin.')
+            m_exc = re.search(
+                r"\b(?:except(?:\s+for)?|other\s+than|unless|excluding)\s+([a-z0-9/-]+)",
+                sent_norm,
+            )
+            if m_exc and (
+                "medication" in sent_norm
+                or any(p.search(sent_norm) for p in SENSITIVE_MED_OMISSION_PATTERNS)
+                or bool(re.search(r"\b(?:continue|take|resume)\b", sent_norm))
+            ):
+                exc_drug = resolve_canonical_medication_name(m_exc.group(1))
+                if not (
+                    _clause_is_covered(sent_norm, med_evidence)
+                    and exc_drug in extracted_med_canonicals
+                ):
+                    self._append_omission_flags(
+                        payload,
+                        f"Medication exception clause ('{m_exc.group(0)}') omitted from extraction: '{sent}'",
+                        sent,
+                    )
+                    continue
+
             sent_stripped_neg = _strip_negated_clauses(sent_norm)
             if not sent_stripped_neg:
                 continue
@@ -2854,9 +3616,14 @@ class SafetyValidator:
                     continue
 
                 # 1. Check omitted medication instructions at the clause level
+                # Includes bare medication list lines with dose + frequency (e.g. 'Medication list: metformin 1000 mg twice daily.')
+                has_bare_med_regimen = bool(
+                    parse_doses(clause) and parse_frequency_classes(clause)[0]
+                )
                 has_sensitive_med_verb = (
                     any(p.search(clause) for p in SENSITIVE_MED_OMISSION_PATTERNS)
                     or bool(re.search(r"\b(?:continue|take)\s+[a-z]{3,}", clause))
+                    or has_bare_med_regimen
                     or (
                         "except" in sent_stripped_neg
                         and (

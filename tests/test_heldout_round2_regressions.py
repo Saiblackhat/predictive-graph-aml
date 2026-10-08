@@ -2084,7 +2084,7 @@ class TestHeldoutRound2Regressions(unittest.TestCase):
         self.assertTrue(dc["patient_releasable"])
         self.assertEqual(dc["hazard_codes_detected"], [])
 
-        # Case D: Warning-sign text directly supported by source (ROUTINE non-emergent symptom)
+        # Case D: Warning-sign summary drops conditional 'if noted' -> MUST BLOCK (Requirement 3)
         raw_d = "Monitor for mild ankle swelling and call Primary Care clinic if noted."
         res_d = self.client.post(
             "/api/v1/validate",
@@ -2107,9 +2107,9 @@ class TestHeldoutRound2Regressions(unittest.TestCase):
         )
         self.assertEqual(res_d.status_code, 200)
         dd = res_d.json()
-        self.assertEqual(dd["overall_safety_status"], "SAFE / ORGANIZED")
-        self.assertTrue(dd["patient_releasable"])
-        self.assertEqual(dd["hazard_codes_detected"], [])
+        self.assertEqual(dd["overall_safety_status"], "NEEDS REVIEW")
+        self.assertFalse(dd["patient_releasable"])
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", dd["hazard_codes_detected"])
 
         # Case E (Blocked): Intentionally fabricated patient_friendly_summary
         res_e = self.client.post(
@@ -2138,6 +2138,511 @@ class TestHeldoutRound2Regressions(unittest.TestCase):
         self.assertFalse(de["patient_releasable"])
         self.assertTrue(de["requires_human_review"])
         self.assertIn("UNSUPPORTED_FIELD_VALUE", de["hazard_codes_detected"])
+
+    def test_phase3c_summary_fidelity_s01_to_s10(self) -> None:
+        # S01: drops 'only' and 'for pain' -> BLOCK
+        s01_raw = "Take acetaminophen 500 mg every 6 hours only if needed for pain."
+        res_s01 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "S01",
+                "patient_identifier": "PT-S01",
+                "raw_discharge_text": s01_raw,
+                "medications": [
+                    {
+                        "id": "med-s01",
+                        "medication_name": "acetaminophen",
+                        "action": "CONTINUE",
+                        "dosage": "500 mg",
+                        "frequency": "every 6 hours as needed",
+                        "indication_or_note": "only if needed for pain",
+                        "confidence": 0.97,
+                        "patient_friendly_summary": "Take acetaminophen 500 mg every 6 hours if needed.",
+                        "source_evidence": {"source_text": s01_raw},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_s01.status_code, 200)
+        d_s01 = res_s01.json()
+        self.assertFalse(d_s01["patient_releasable"])
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", d_s01["hazard_codes_detected"])
+
+        # S02: drops 'for 5 days, then stop' -> BLOCK
+        s02_raw = "Take prednisone 20 mg daily for 5 days, then stop."
+        res_s02 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "S02",
+                "patient_identifier": "PT-S02",
+                "raw_discharge_text": s02_raw,
+                "medications": [
+                    {
+                        "id": "med-s02",
+                        "medication_name": "prednisone",
+                        "action": "CONTINUE",
+                        "dosage": "20 mg",
+                        "frequency": "daily",
+                        "confidence": 0.96,
+                        "patient_friendly_summary": "Take prednisone 20 mg daily.",
+                        "source_evidence": {"source_text": s02_raw},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_s02.status_code, 200)
+        d_s02 = res_s02.json()
+        self.assertFalse(d_s02["patient_releasable"])
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", d_s02["hazard_codes_detected"])
+
+        # S03: drops 'unless dizzy' -> BLOCK
+        s03_raw = "Continue hydralazine 25 mg three times daily unless dizzy."
+        res_s03 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "S03",
+                "patient_identifier": "PT-S03",
+                "raw_discharge_text": s03_raw,
+                "medications": [
+                    {
+                        "id": "med-s03",
+                        "medication_name": "hydralazine",
+                        "action": "CONTINUE",
+                        "dosage": "25 mg",
+                        "frequency": "three times daily",
+                        "indication_or_note": "unless dizzy",
+                        "confidence": 0.96,
+                        "patient_friendly_summary": "Take hydralazine 25 mg three times daily.",
+                        "source_evidence": {"source_text": s03_raw},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_s03.status_code, 200)
+        d_s03 = res_s03.json()
+        self.assertFalse(d_s03["patient_releasable"])
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", d_s03["hazard_codes_detected"])
+
+        # S04: drops 'until seen by cardiology' -> BLOCK
+        s04_raw = "Hold Eliquis 5 mg twice daily until seen by cardiology."
+        res_s04 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "S04",
+                "patient_identifier": "PT-S04",
+                "raw_discharge_text": s04_raw,
+                "medications": [
+                    {
+                        "id": "med-s04",
+                        "medication_name": "Eliquis",
+                        "action": "HOLD_TEMPORARY",
+                        "dosage": "5 mg",
+                        "frequency": "twice daily",
+                        "indication_or_note": "until seen by cardiology",
+                        "confidence": 0.96,
+                        "patient_friendly_summary": "Hold Eliquis 5 mg twice daily.",
+                        "source_evidence": {"source_text": s04_raw},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_s04.status_code, 200)
+        d_s04 = res_s04.json()
+        self.assertFalse(d_s04["patient_releasable"])
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", d_s04["hazard_codes_detected"])
+
+        # S05: drops 'after meals' -> BLOCK
+        s05_raw = "Continue ibuprofen 400 mg every 8 hours after meals."
+        res_s05 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "S05",
+                "patient_identifier": "PT-S05",
+                "raw_discharge_text": s05_raw,
+                "medications": [
+                    {
+                        "id": "med-s05",
+                        "medication_name": "ibuprofen",
+                        "action": "CONTINUE",
+                        "dosage": "400 mg",
+                        "frequency": "every 8 hours",
+                        "indication_or_note": "after meals",
+                        "confidence": 0.96,
+                        "patient_friendly_summary": "Take ibuprofen 400 mg every 8 hours.",
+                        "source_evidence": {"source_text": s05_raw},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_s05.status_code, 200)
+        d_s05 = res_s05.json()
+        self.assertFalse(d_s05["patient_releasable"])
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", d_s05["hazard_codes_detected"])
+
+        # S06: drops numeric thresholds 'greater than 101.5 F' and 'more than 3 pounds' -> BLOCK
+        s06_raw = "Call the clinic if fever is greater than 101.5 F or weight gain is more than 3 pounds."
+        res_s06 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "S06",
+                "patient_identifier": "PT-S06",
+                "raw_discharge_text": s06_raw,
+                "warning_signs": [
+                    {
+                        "id": "ws-s06",
+                        "symptom_description": "fever is greater than 101.5 F or weight gain is more than 3 pounds",
+                        "urgency": "SOON",
+                        "action_to_take": "Call the clinic",
+                        "confidence": 0.96,
+                        "patient_friendly_summary": "Call the clinic if you have fever or weight gain.",
+                        "source_evidence": {"source_text": s06_raw},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_s06.status_code, 200)
+        d_s06 = res_s06.json()
+        self.assertFalse(d_s06["patient_releasable"])
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", d_s06["hazard_codes_detected"])
+
+        # S07: weakens 'within 3 days' to 'in 3 days' -> BLOCK
+        s07_raw = "Follow up with Cardiology within 3 days."
+        res_s07 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "S07",
+                "patient_identifier": "PT-S07",
+                "raw_discharge_text": s07_raw,
+                "follow_ups": [
+                    {
+                        "id": "fu-s07",
+                        "specialty": "Cardiology",
+                        "timeframe": "within 3 days",
+                        "confidence": 0.97,
+                        "patient_friendly_summary": "Follow up with Cardiology in 3 days.",
+                        "source_evidence": {"source_text": s07_raw},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_s07.status_code, 200)
+        d_s07 = res_s07.json()
+        self.assertFalse(d_s07["patient_releasable"])
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", d_s07["hazard_codes_detected"])
+
+        # S08: faithful paraphrase preserving 'only if', 'need it', and 'for pain' -> ALLOW
+        s08_raw = "Take acetaminophen 500 mg every 6 hours only if needed for pain."
+        res_s08 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "S08",
+                "patient_identifier": "PT-S08",
+                "raw_discharge_text": s08_raw,
+                "medications": [
+                    {
+                        "id": "med-s08",
+                        "medication_name": "acetaminophen",
+                        "action": "CONTINUE",
+                        "dosage": "500 mg",
+                        "frequency": "every 6 hours as needed",
+                        "indication_or_note": "only if needed for pain",
+                        "confidence": 0.98,
+                        "patient_friendly_summary": "Take acetaminophen 500 mg every 6 hours only if you need it for pain.",
+                        "source_evidence": {"source_text": s08_raw},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_s08.status_code, 200)
+        d_s08 = res_s08.json()
+        self.assertEqual(d_s08["overall_safety_status"], "SAFE / ORGANIZED")
+        self.assertTrue(d_s08["patient_releasable"])
+        self.assertEqual(d_s08["hazard_codes_detected"], [])
+
+        # S09: faithful paraphrase preserving 'if it is noted' -> ALLOW
+        s09_raw = "Monitor for mild ankle swelling if noted and call the Primary Care clinic."
+        res_s09 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "S09",
+                "patient_identifier": "PT-S09",
+                "raw_discharge_text": s09_raw,
+                "warning_signs": [
+                    {
+                        "id": "ws-s09",
+                        "symptom_description": "mild ankle swelling",
+                        "urgency": "ROUTINE",
+                        "action_to_take": "call the Primary Care clinic",
+                        "confidence": 0.97,
+                        "patient_friendly_summary": "Monitor for mild ankle swelling and call the Primary Care clinic if it is noted.",
+                        "source_evidence": {"source_text": s09_raw},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_s09.status_code, 200)
+        d_s09 = res_s09.json()
+        self.assertEqual(d_s09["overall_safety_status"], "SAFE / ORGANIZED")
+        self.assertTrue(d_s09["patient_releasable"])
+        self.assertEqual(d_s09["hazard_codes_detected"], [])
+
+        # S10: adds unsupported clinical rationale ('because it protects your kidneys') -> BLOCK
+        s10_raw = "Continue lisinopril 10 mg daily."
+        res_s10 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "S10",
+                "patient_identifier": "PT-S10",
+                "raw_discharge_text": s10_raw,
+                "medications": [
+                    {
+                        "id": "med-s10",
+                        "medication_name": "lisinopril",
+                        "action": "CONTINUE",
+                        "dosage": "10 mg",
+                        "frequency": "daily",
+                        "confidence": 0.98,
+                        "patient_friendly_summary": "Continue lisinopril 10 mg daily because it protects your kidneys.",
+                        "source_evidence": {"source_text": s10_raw},
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_s10.status_code, 200)
+        d_s10 = res_s10.json()
+        self.assertFalse(d_s10["patient_releasable"])
+        self.assertIn("UNSUPPORTED_FIELD_VALUE", d_s10["hazard_codes_detected"])
+
+    def test_phase3c_original_live_h29b_h40a_to_c_and_size_boundary_b200_b201(
+        self,
+    ) -> None:
+        # Requirement 4: Original live HTTP 422 tests for H29b, H40a, H40b, H40c
+        orig_422_cases = {
+            "H29b": {
+                "case_id": "H29b",
+                "patient_identifier": "PT-H29b",
+                "raw_discharge_text": "Continue metformin 500 mg daily. Continue metformin 1000 mg daily.",
+                "medications": [
+                    {
+                        "id": "med-1",
+                        "medication_name": "metformin",
+                        "action": "CONTINUE",
+                        "dosage": "500 mg",
+                        "frequency": "daily",
+                        "confidence": 0.95,
+                        "source_evidence": {
+                            "source_text": "Continue metformin 500 mg daily."
+                        },
+                    },
+                    {
+                        "id": "MED-1",
+                        "medication_name": "metformin",
+                        "action": "CONTINUE",
+                        "dosage": "1000 mg",
+                        "frequency": "daily",
+                        "confidence": 0.95,
+                        "source_evidence": {
+                            "source_text": "Continue metformin 1000 mg daily."
+                        },
+                    },
+                ],
+            },
+            "H40a": {
+                "case_id": "H40a",
+                "patient_identifier": "PT-H40a",
+                "raw_discharge_text": "Continue aspirin 81 mg daily.",
+                "medications": [
+                    {
+                        "id": "med-1",
+                        "medication_name": "",
+                        "action": "CONTINUE",
+                        "dosage": "81 mg",
+                        "frequency": "daily",
+                        "confidence": 0.95,
+                        "source_evidence": {
+                            "source_text": "Continue aspirin 81 mg daily."
+                        },
+                    }
+                ],
+            },
+            "H40b": {
+                "case_id": "H40b",
+                "patient_identifier": "PT-H40b",
+                "raw_discharge_text": "Continue aspirin 81 mg daily.",
+                "medications": [
+                    {
+                        "id": "med-1",
+                        "medication_name": "   ",
+                        "action": "CONTINUE",
+                        "dosage": "81 mg",
+                        "frequency": "daily",
+                        "confidence": 0.95,
+                        "source_evidence": {
+                            "source_text": "Continue aspirin 81 mg daily."
+                        },
+                    }
+                ],
+            },
+            "H40c": {
+                "case_id": "H40c",
+                "patient_identifier": "PT-H40c",
+                "raw_discharge_text": "Continue aspirin 81 mg daily.",
+                "medications": [
+                    {
+                        "id": "med-1",
+                        "medication_name": "aspirin",
+                        "action": "CONTINUE",
+                        "dosage": "81 mg",
+                        "frequency": "daily",
+                        "confidence": 0.95,
+                        "patient_friendly_summary": "A" * 1_000_000,
+                        "source_evidence": {
+                            "source_text": "Continue aspirin 81 mg daily."
+                        },
+                    }
+                ],
+            },
+        }
+        for cid, body in orig_422_cases.items():
+            resp = self.client.post("/api/v1/validate", json=body)
+            self.assertEqual(
+                resp.status_code,
+                422,
+                f"Original live {cid} must return HTTP 422, got {resp.status_code}",
+            )
+
+        # Requirement 5: B200 (exact 204,800 bytes -> HTTP 200) and B201 (exact 204,801 bytes -> HTTP 413)
+        base_line = "Continue aspirin 81 mg daily.\n"
+        filler_unit = "Hospital course note: patient remained hemodynamically stable. "
+        needed_200 = 204_800 - len(base_line)
+        reps = needed_200 // len(filler_unit)
+        rem = needed_200 - (reps * len(filler_unit))
+        tail_pad = ("Patient stable" + (" " * max(0, rem - 15)) + ".")[:rem]
+        raw_b200 = base_line + (filler_unit * reps) + tail_pad
+        self.assertEqual(len(raw_b200.encode("utf-8")), 204_800)
+
+        res_b200 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "B200",
+                "patient_identifier": "PT-B200",
+                "raw_discharge_text": raw_b200,
+                "medications": [
+                    {
+                        "id": "med-b200",
+                        "medication_name": "aspirin",
+                        "action": "CONTINUE",
+                        "dosage": "81 mg",
+                        "frequency": "daily",
+                        "confidence": 0.98,
+                        "source_evidence": {
+                            "source_text": "Continue aspirin 81 mg daily."
+                        },
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_b200.status_code, 200)
+        self.assertTrue(res_b200.json()["patient_releasable"])
+
+        raw_b201 = raw_b200 + "X"
+        self.assertEqual(len(raw_b201.encode("utf-8")), 204_801)
+        res_b201 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "B201",
+                "patient_identifier": "PT-B201",
+                "raw_discharge_text": raw_b201,
+                "medications": [
+                    {
+                        "id": "med-b201",
+                        "medication_name": "aspirin",
+                        "action": "CONTINUE",
+                        "dosage": "81 mg",
+                        "frequency": "daily",
+                        "confidence": 0.98,
+                        "source_evidence": {
+                            "source_text": "Continue aspirin 81 mg daily."
+                        },
+                    }
+                ],
+            },
+        )
+        self.assertEqual(res_b201.status_code, 413)
+
+        # Requirement 10: Out-of-lexicon medications (dapagliflozin, eplerenone, finerenone, empagliflozin)
+        # and combination medication (sacubitril-valsartan 49/51 mg)
+        for ool_drug, ool_dose in (
+            ("dapagliflozin", "10 mg"),
+            ("eplerenone", "25 mg"),
+            ("finerenone", "10 mg"),
+            ("empagliflozin", "10 mg"),
+            ("sacubitril-valsartan", "49/51 mg"),
+        ):
+            raw_ool = f"Continue {ool_drug} {ool_dose} twice daily."
+            res_ool = self.client.post(
+                "/api/v1/validate",
+                json={
+                    "case_id": f"OOL-{ool_drug}",
+                    "patient_identifier": "PT-OOL",
+                    "raw_discharge_text": raw_ool,
+                    "medications": [
+                        {
+                            "id": "med-ool-1",
+                            "medication_name": ool_drug,
+                            "action": "CONTINUE",
+                            "dosage": ool_dose,
+                            "frequency": "twice daily",
+                            "confidence": 0.97,
+                            "patient_friendly_summary": f"Continue {ool_drug} {ool_dose} twice daily.",
+                            "source_evidence": {"source_text": raw_ool},
+                        }
+                    ],
+                },
+            )
+            self.assertEqual(res_ool.status_code, 200)
+            self.assertTrue(
+                res_ool.json()["patient_releasable"],
+                f"Expected out-of-lexicon/combination drug {ool_drug} {ool_dose} to be releasable, got {res_ool.json()}",
+            )
+
+        # Requirement 13: Explicit calendar dates in F17 emit CONFLICTING_INSTRUCTIONS and NOT MISSING_FOLLOWUP_TIMEFRAME
+        raw_f17 = "Appointment with Urology on 04 Dec 2026. Appointment with Urology on 18 Dec 2026."
+        res_f17 = self.client.post(
+            "/api/v1/validate",
+            json={
+                "case_id": "F17-CLEANUP",
+                "patient_identifier": "PT-F17",
+                "raw_discharge_text": raw_f17,
+                "follow_ups": [
+                    {
+                        "id": "fu-1",
+                        "specialty": "Urology",
+                        "timeframe": "on 04 Dec 2026",
+                        "confidence": 0.95,
+                        "source_evidence": {
+                            "source_text": "Appointment with Urology on 04 Dec 2026."
+                        },
+                    },
+                    {
+                        "id": "fu-2",
+                        "specialty": "Urology",
+                        "timeframe": "on 18 Dec 2026",
+                        "confidence": 0.95,
+                        "source_evidence": {
+                            "source_text": "Appointment with Urology on 18 Dec 2026."
+                        },
+                    },
+                ],
+            },
+        )
+        self.assertEqual(res_f17.status_code, 200)
+        d_f17 = res_f17.json()
+        self.assertEqual(d_f17["overall_safety_status"], "CONFLICT DETECTED")
+        self.assertEqual(d_f17["hazard_codes_detected"], ["CONFLICTING_INSTRUCTIONS"])
+        self.assertNotIn(
+            "MISSING_FOLLOWUP_TIMEFRAME", d_f17["hazard_codes_detected"]
+        )
 
 
 

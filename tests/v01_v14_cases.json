@@ -1,0 +1,669 @@
+[
+  {
+    "case_id": "V01",
+    "description": "Warning-sign summary drops second symptom and emergency action",
+    "expected_overall_status": ["NEEDS REVIEW"],
+    "expected_patient_releasable": false,
+    "payload": {
+      "document_id": "doc-v01",
+      "raw_discharge_text": "Return to the emergency department immediately if you develop chest pain or shortness of breath.",
+      "extraction": {
+        "document_id": "doc-v01",
+        "medications": [],
+        "follow_ups": [],
+        "warning_signs": [
+          {
+            "item_id": "warn-v01",
+            "description": "chest pain",
+            "urgency_or_action": "Return to the emergency department immediately",
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v01",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Return to the emergency department immediately if you develop chest pain or shortness of breath.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Monitor for chest pain."
+          }
+        ],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V02",
+    "description": "Out-of-lexicon safe medication continuation",
+    "expected_overall_status": ["SAFE / ORGANIZED"],
+    "expected_patient_releasable": true,
+    "payload": {
+      "document_id": "doc-v02",
+      "raw_discharge_text": "Continue eplerenone 25 mg by mouth once daily.",
+      "extraction": {
+        "document_id": "doc-v02",
+        "medications": [
+          {
+            "item_id": "med-v02",
+            "medication_name": "eplerenone",
+            "generic_name": null,
+            "brand_name": null,
+            "action": "CONTINUE",
+            "dosage": "25 mg",
+            "frequency": "once daily",
+            "route": "by mouth",
+            "indication_or_reason": null,
+            "Conflicting_instruction_ids": [],
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v02",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Continue eplerenone 25 mg by mouth once daily.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Continue eplerenone 25 mg by mouth once daily."
+          }
+        ],
+        "follow_ups": [],
+        "warning_signs": [],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V03",
+    "description": "Conditional hold represented as unconditional hold",
+    "expected_overall_status": ["NEEDS REVIEW"],
+    "expected_patient_releasable": false,
+    "payload": {
+      "document_id": "doc-v03",
+      "raw_discharge_text": "Hold metoprolol if heart rate is below 55 bpm.",
+      "extraction": {
+        "document_id": "doc-v03",
+        "medications": [
+          {
+            "item_id": "med-v03",
+            "medication_name": "metoprolol",
+            "generic_name": null,
+            "brand_name": null,
+            "action": "HOLD_TEMPORARY",
+            "dosage": null,
+            "frequency": null,
+            "route": null,
+            "indication_or_reason": null,
+            "Conflicting_instruction_ids": [],
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v03",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Hold metoprolol if heart rate is below 55 bpm.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Hold metoprolol."
+          }
+        ],
+        "follow_ups": [],
+        "warning_signs": [],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V04",
+    "description": "Unqualified timeframe extracted from qualified source",
+    "expected_overall_status": ["NEEDS REVIEW"],
+    "expected_patient_releasable": false,
+    "payload": {
+      "document_id": "doc-v04",
+      "raw_discharge_text": "Follow up with Nephrology within 2 weeks.",
+      "extraction": {
+        "document_id": "doc-v04",
+        "medications": [],
+        "follow_ups": [
+          {
+            "item_id": "fu-v04",
+            "specialty_or_clinic": "Nephrology",
+            "provider_name": null,
+            "timeframe": "2 weeks",
+            "reason": null,
+            "conflicting_instruction_ids": [],
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v04",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Follow up with Nephrology within 2 weeks.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Follow up with Nephrology in 2 weeks."
+          }
+        ],
+        "warning_signs": [],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V05",
+    "description": "Intra-clause second dose omitted",
+    "expected_overall_status": ["NEEDS REVIEW"],
+    "expected_patient_releasable": false,
+    "payload": {
+      "document_id": "doc-v05",
+      "raw_discharge_text": "Take furosemide 40 mg daily, and take 80 mg on days when weight is up more than 3 lb.",
+      "extraction": {
+        "document_id": "doc-v05",
+        "medications": [
+          {
+            "item_id": "med-v05",
+            "medication_name": "furosemide",
+            "generic_name": null,
+            "brand_name": null,
+            "action": "CONTINUE",
+            "dosage": "40 mg",
+            "frequency": "daily",
+            "route": null,
+            "indication_or_reason": null,
+            "Conflicting_instruction_ids": [],
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v05",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Take furosemide 40 mg daily, and take 80 mg on days when weight is up more than 3 lb.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Take furosemide 40 mg daily."
+          }
+        ],
+        "follow_ups": [],
+        "warning_signs": [],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V06",
+    "description": "Finite duration + stop omitted as indefinite continuation",
+    "expected_overall_status": ["NEEDS REVIEW"],
+    "expected_patient_releasable": false,
+    "payload": {
+      "document_id": "doc-v06",
+      "raw_discharge_text": "Take prednisone 20 mg daily for 5 days, then stop.",
+      "extraction": {
+        "document_id": "doc-v06",
+        "medications": [
+          {
+            "item_id": "med-v06",
+            "medication_name": "prednisone",
+            "generic_name": null,
+            "brand_name": null,
+            "action": "CONTINUE",
+            "dosage": "20 mg",
+            "frequency": "daily",
+            "route": null,
+            "indication_or_reason": null,
+            "Conflicting_instruction_ids": [],
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v06",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Take prednisone 20 mg daily for 5 days, then stop.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Continue prednisone 20 mg daily."
+          }
+        ],
+        "follow_ups": [],
+        "warning_signs": [],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V07",
+    "description": "Safe follow-up with explicit construct",
+    "expected_overall_status": ["SAFE / ORGANIZED"],
+    "expected_patient_releasable": true,
+    "payload": {
+      "document_id": "doc-v07",
+      "raw_discharge_text": "Schedule a follow-up appointment with Cardiology within 7 days.",
+      "extraction": {
+        "document_id": "doc-v07",
+        "medications": [],
+        "follow_ups": [
+          {
+            "item_id": "fu-v07",
+            "specialty_or_clinic": "Cardiology",
+            "provider_name": null,
+            "timeframe": "within 7 days",
+            "reason": null,
+            "conflicting_instruction_ids": [],
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v07",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Schedule a follow-up appointment with Cardiology within 7 days.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Schedule a follow-up appointment with Cardiology within 7 days."
+          }
+        ],
+        "warning_signs": [],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V08",
+    "description": "Exception qualifier dropped in summary",
+    "expected_overall_status": ["NEEDS REVIEW"],
+    "expected_patient_releasable": false,
+    "payload": {
+      "document_id": "doc-v08",
+      "raw_discharge_text": "Continue spironolactone 25 mg daily unless serum potassium exceeds 5.0 mmol/L.",
+      "extraction": {
+        "document_id": "doc-v08",
+        "medications": [
+          {
+            "item_id": "med-v08",
+            "medication_name": "spironolactone",
+            "generic_name": null,
+            "brand_name": null,
+            "action": "CONTINUE",
+            "dosage": "25 mg",
+            "frequency": "daily",
+            "route": null,
+            "indication_or_reason": "unless serum potassium exceeds 5.0 mmol/L",
+            "Conflicting_instruction_ids": [],
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v08",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Continue spironolactone 25 mg daily unless serum potassium exceeds 5.0 mmol/L.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Continue spironolactone 25 mg daily."
+          }
+        ],
+        "follow_ups": [],
+        "warning_signs": [],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V09",
+    "description": "Summary weakens timeframe",
+    "expected_overall_status": ["NEEDS REVIEW"],
+    "expected_patient_releasable": false,
+    "payload": {
+      "document_id": "doc-v09",
+      "raw_discharge_text": "Follow up with Cardiology within 7 days.",
+      "extraction": {
+        "document_id": "doc-v09",
+        "medications": [],
+        "follow_ups": [
+          {
+            "item_id": "fu-v09",
+            "specialty_or_clinic": "Cardiology",
+            "provider_name": null,
+            "timeframe": "within 7 days",
+            "reason": null,
+            "conflicting_instruction_ids": [],
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v09",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Follow up with Cardiology within 7 days.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Follow up with Cardiology soon."
+          }
+        ],
+        "warning_signs": [],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V10",
+    "description": "Warning-sign summary drops threshold",
+    "expected_overall_status": ["NEEDS REVIEW"],
+    "expected_patient_releasable": false,
+    "payload": {
+      "document_id": "doc-v10",
+      "raw_discharge_text": "Call the clinic if your weight increases by more than 2 pounds in a day or 5 pounds in a week.",
+      "extraction": {
+        "document_id": "doc-v10",
+        "medications": [],
+        "follow_ups": [],
+        "warning_signs": [
+          {
+            "item_id": "warn-v10",
+            "description": "your weight increases by more than 2 pounds in a day or 5 pounds in a week",
+            "urgency_or_action": "Call the clinic",
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v10",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Call the clinic if your weight increases by more than 2 pounds in a day or 5 pounds in a week.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Call the clinic if your weight increases."
+          }
+        ],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V11",
+    "description": "Safe combination medication",
+    "expected_overall_status": ["SAFE / ORGANIZED"],
+    "expected_patient_releasable": true,
+    "payload": {
+      "document_id": "doc-v11",
+      "raw_discharge_text": "Continue sacubitril-valsartan 49/51 mg twice daily.",
+      "extraction": {
+        "document_id": "doc-v11",
+        "medications": [
+          {
+            "item_id": "med-v11",
+            "medication_name": "sacubitril-valsartan",
+            "generic_name": null,
+            "brand_name": null,
+            "action": "CONTINUE",
+            "dosage": "49/51 mg",
+            "frequency": "twice daily",
+            "route": null,
+            "indication_or_reason": null,
+            "Conflicting_instruction_ids": [],
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v11",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Continue sacubitril-valsartan 49/51 mg twice daily.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Continue sacubitril-valsartan 49/51 mg twice daily."
+          }
+        ],
+        "follow_ups": [],
+        "warning_signs": [],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V12",
+    "description": "Conflicting medication list",
+    "expected_overall_status": ["CONFLICT DETECTED", "NEEDS REVIEW"],
+    "expected_patient_releasable": false,
+    "payload": {
+      "document_id": "doc-v12",
+      "raw_discharge_text": "Continue metformin 500 mg twice daily.\nMedication list: metformin 1000 mg twice daily.",
+      "extraction": {
+        "document_id": "doc-v12",
+        "medications": [
+          {
+            "item_id": "med-v12",
+            "medication_name": "metformin",
+            "generic_name": null,
+            "brand_name": null,
+            "action": "CONTINUE",
+            "dosage": "500 mg",
+            "frequency": "twice daily",
+            "route": null,
+            "indication_or_reason": null,
+            "Conflicting_instruction_ids": [],
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v12",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Continue metformin 500 mg twice daily.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Continue metformin 500 mg twice daily."
+          }
+        ],
+        "follow_ups": [],
+        "warning_signs": [],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V13",
+    "description": "Neutral directory provider",
+    "expected_overall_status": ["SAFE / ORGANIZED"],
+    "expected_patient_releasable": true,
+    "payload": {
+      "document_id": "doc-v13",
+      "raw_discharge_text": "Follow up with Cardiology within 14 days.",
+      "extraction": {
+        "document_id": "doc-v13",
+        "medications": [],
+        "follow_ups": [
+          {
+            "item_id": "fu-v13",
+            "specialty_or_clinic": "Cardiology",
+            "provider_name": null,
+            "timeframe": "within 14 days",
+            "reason": null,
+            "conflicting_instruction_ids": [],
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v13",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Follow up with Cardiology within 14 days.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Follow up with Cardiology within 14 days."
+          }
+        ],
+        "warning_signs": [],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [
+          {
+            "item_id": "prov-v13",
+            "provider_name": "Metro Heart Clinic",
+            "specialty": "Cardiology",
+            "address": "100 Medical Plaza",
+            "distance_miles": 2.4,
+            "claim_text": "Listed in synthetic directory under Cardiology.",
+            "is_verified_neutral": true,
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v13",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Follow up with Cardiology within 14 days.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Listed in synthetic directory under Cardiology."
+          }
+        ],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  },
+  {
+    "case_id": "V14",
+    "description": "Governed negation with exception",
+    "expected_overall_status": ["NEEDS REVIEW"],
+    "expected_patient_releasable": false,
+    "payload": {
+      "document_id": "doc-v14",
+      "raw_discharge_text": "No home medications were stopped except warfarin.\nContinue lisinopril 10 mg daily.",
+      "extraction": {
+        "document_id": "doc-v14",
+        "medications": [
+          {
+            "item_id": "med-v14",
+            "medication_name": "lisinopril",
+            "generic_name": null,
+            "brand_name": null,
+            "action": "CONTINUE",
+            "dosage": "10 mg",
+            "frequency": "daily",
+            "route": null,
+            "indication_or_reason": null,
+            "Conflicting_instruction_ids": [],
+            "extraction_confidence": 0.98,
+            "source_evidence": [
+              {
+                "source_document_id": "doc-v14",
+                "section_heading": "Discharge Instructions",
+                "page_number": 1,
+                "source_text": "Continue lisinopril 10 mg daily.",
+                "start_char": null,
+                "end_char": null
+              }
+            ],
+            "safety_status": "SAFE / ORGANIZED",
+            "review_status": "AUTO_APPROVED",
+            "safety_flags": [],
+            "patient_friendly_summary": "Continue lisinopril 10 mg daily."
+          }
+        ],
+        "follow_ups": [],
+        "warning_signs": [],
+        "daily_monitoring_tasks": [],
+        "provider_matches": [],
+        "overall_safety_status": "SAFE / ORGANIZED",
+        "requires_human_review": false
+      }
+    }
+  }
+]
