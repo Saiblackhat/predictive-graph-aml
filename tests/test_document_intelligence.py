@@ -454,7 +454,7 @@ class TestPhase4DocumentIntelligence(unittest.TestCase):
 
         ws_urgencies = [w.urgency for w in res.warning_signs]
         self.assertIn(UrgencyLevel.UNKNOWN, ws_urgencies)
-        self.assertIn(UrgencyLevel.URGENT, ws_urgencies)
+        self.assertIn(UrgencyLevel.EMERGENT_911, ws_urgencies)
 
     def test_standalone_tests_and_narrative_only_document(self) -> None:
         raw_tests_only = (
