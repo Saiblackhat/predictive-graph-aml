@@ -57,6 +57,7 @@ BANNED_NOTIFICATION_PHRASES: list[re.Pattern] = [re.compile(p, re.IGNORECASE) fo
     r"\bbest\s+(?:doctor|cardiologist|provider|specialist)\b",
     r"\btop[\s-]rated\b",
     r"\brecommended\s+provider\b",
+    r"\bguaranteed\b",
     r"\bmissed\s+appointment\b",
     r"\bdebe\b",
     r"\bnecesita\b",
@@ -64,6 +65,9 @@ BANNED_NOTIFICATION_PHRASES: list[re.Pattern] = [re.compile(p, re.IGNORECASE) fo
     r"\bemergency\b",
     r"\bcritical\b",
     r"\bdanger\b",
+    r"\blife[\s-]threatening\b",
+    r"\bhurry\b",
+    r"\bimmediate\s+action\s+required\b",
 ]]
 
 

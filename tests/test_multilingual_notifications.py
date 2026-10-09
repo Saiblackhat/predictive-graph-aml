@@ -378,6 +378,106 @@ class TestSafetyVerificationAndFidelity(unittest.TestCase):
         self.assertEqual(status, TranslationStatus.REVIEW_REQUIRED.value)
         self.assertTrue(any("Prohibited" in n for n in notes))
 
+    def test_formulation_salt_swap_fails_fidelity(self):
+        """Swapping metoprolol succinate to metoprolol tartrate triggers REVIEW_REQUIRED."""
+        follow_up_task, _ = get_notification_fixture("N01")
+        med_task = OrchestratedTask(
+            task_id="task-med-salt",
+            source_item_id="item-med-salt",
+            task_category=TaskCategory.MEDICATION,
+            title="Take metoprolol succinate 50 mg daily",
+            description="Take metoprolol succinate 50 mg daily",
+            status=TaskStatus.SCHEDULED,
+            timeframe=ParsedTimeframe(timeframe_type=TimeframeType.ABSOLUTE_DATE, raw_text="March 18, 2027"),
+            evidence=follow_up_task.evidence,
+            patient_releasable=True,
+            requires_human_review=False,
+            clinical_metadata={"specialty": "Cardiology"},
+        )
+
+        # Translation corrupted with wrong salt form
+        corrupted_title = "Medication Reminder: metoprolol tartrate 50 mg"
+        corrupted_body = "Take metoprolol tartrate 50 mg as directed."
+
+        is_verified, status, notes = verify_translation_fidelity(
+            title=corrupted_title,
+            body=corrupted_body,
+            task=med_task,
+            reminder=None,
+            language="en",
+        )
+        self.assertFalse(is_verified)
+        self.assertEqual(status, TranslationStatus.REVIEW_REQUIRED.value)
+        self.assertTrue(any("salt" in n.lower() for n in notes))
+
+    def test_negation_loss_fails_fidelity(self):
+        """A 'do not take' instruction translated without negation triggers REVIEW_REQUIRED."""
+        follow_up_task, _ = get_notification_fixture("N01")
+        neg_task = OrchestratedTask(
+            task_id="task-med-neg",
+            source_item_id="item-med-neg",
+            task_category=TaskCategory.MEDICATION,
+            title="Do not take aspirin 81 mg",
+            description="Do not take aspirin 81 mg after discharge",
+            status=TaskStatus.SCHEDULED,
+            timeframe=ParsedTimeframe(timeframe_type=TimeframeType.ABSOLUTE_DATE, raw_text="March 18, 2027"),
+            evidence=follow_up_task.evidence,
+            patient_releasable=True,
+            requires_human_review=False,
+            clinical_metadata={"specialty": "Cardiology"},
+        )
+
+        # Corrupted translation dropping negation: "Take aspirin 81 mg"
+        corrupted_title = "Medication Reminder: Take aspirin 81 mg"
+        corrupted_body = "Take aspirin 81 mg as directed."
+
+        is_verified, status, notes = verify_translation_fidelity(
+            title=corrupted_title,
+            body=corrupted_body,
+            task=neg_task,
+            reminder=None,
+            language="en",
+        )
+        self.assertFalse(is_verified)
+        self.assertEqual(status, TranslationStatus.REVIEW_REQUIRED.value)
+        self.assertTrue(any("negation" in n.lower() for n in notes))
+
+    def test_cross_patient_preference_isolation(self):
+        """Setting preferred language for patient A does not leak to patient B."""
+        client = TestClient(app)
+        client.patch("/api/v1/patients/SYNTH-PT-801/language", json={"preferred_language": "ta"})
+        client.patch("/api/v1/patients/SYNTH-PT-101/language", json={"preferred_language": "en"})
+
+        self.assertEqual(PATIENT_PREFERENCES_STORE.get("SYNTH-PT-801"), "ta")
+        self.assertEqual(PATIENT_PREFERENCES_STORE.get("SYNTH-PT-101"), "en")
+
+    def test_patch_idempotence(self):
+        """Repeated PATCH calls with same language are idempotent."""
+        client = TestClient(app)
+        res1 = client.patch("/api/v1/patients/SYNTH-PT-801/language", json={"preferred_language": "hi"})
+        res2 = client.patch("/api/v1/patients/SYNTH-PT-801/language", json={"preferred_language": "hi"})
+        self.assertEqual(res1.status_code, 200)
+        self.assertEqual(res2.status_code, 200)
+        self.assertEqual(res1.json()["preferred_language"], res2.json()["preferred_language"])
+
+    def test_channel_truncation_cutting_invariant_triggers_review(self):
+        """Truncation cutting off required date or dosage renders notification unreleasable."""
+        follow_up_task, rem = get_notification_fixture("N01")
+        # Body truncated before the date "March 18, 2027"
+        truncated_title = "Upcoming follow-up: Cardiology"
+        truncated_body = "Cardiology follow up at office..."
+
+        is_verified, status, notes = verify_translation_fidelity(
+            title=truncated_title,
+            body=truncated_body,
+            task=follow_up_task,
+            reminder=rem,
+            language="en",
+        )
+        self.assertFalse(is_verified)
+        self.assertEqual(status, TranslationStatus.REVIEW_REQUIRED.value)
+        self.assertTrue(any("missing" in n.lower() or "truncation" in n.lower() for n in notes))
+
 
 if __name__ == "__main__":
     unittest.main()

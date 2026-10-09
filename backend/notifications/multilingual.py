@@ -468,16 +468,21 @@ def verify_translation_fidelity(
         notes.append(f"Patient requested unsupported language '{language}'. Verified translation unavailable.")
         return False, TranslationStatus.REVIEW_REQUIRED.value, notes
 
-    # 1. Check Date / Year preservation if an absolute date exists
+    # 1. Check Date / Year and Time preservation if an absolute date exists
     if reminder and reminder.event_time:
         try:
             dt = datetime.datetime.fromisoformat(reminder.event_time)
             year_str = str(dt.year)
             day_str = str(dt.day)
+            time_part = f"{dt.hour % 12 or 12}:{dt.minute:02d}"
+            time_24 = f"{dt.hour:02d}:{dt.minute:02d}"
+
             if year_str not in combined:
                 notes.append(f"Appointment year '{year_str}' missing from translated notification.")
             if day_str not in combined:
                 notes.append(f"Appointment day '{day_str}' missing from translated notification.")
+            if time_part not in combined and time_24 not in combined:
+                notes.append(f"Appointment time '{time_part}' missing from translated notification.")
         except Exception:
             pass
 
@@ -495,12 +500,37 @@ def verify_translation_fidelity(
             if u.lower() not in combined.lower():
                 notes.append(f"Medication unit '{u}' missing from translated notification.")
 
-    # 3. Check Banned Phrases
+        # Check formulation salts (e.g. metoprolol tartrate vs succinate)
+        common_salts = ["succinate", "tartrate", "hydrochloride", "hcl", "sodium", "potassium", "fumarate", "maleate"]
+        for salt in common_salts:
+            if re.search(rf"\b{salt}\b", task.title, re.IGNORECASE):
+                if not re.search(rf"\b{salt}\b", combined, re.IGNORECASE):
+                    notes.append(f"Medication formulation salt '{salt}' missing or altered in translated notification.")
+            else:
+                if re.search(rf"\b{salt}\b", combined, re.IGNORECASE) and any(re.search(rf"\b{s}\b", task.title, re.IGNORECASE) for s in common_salts):
+                    notes.append(f"Medication formulation salt mismatch: found '{salt}' but task did not specify it.")
+
+    # 3. Check Negation Preservation across categories
+    negation_patterns = [
+        (r"\bdo\s+not\s+take\b", r"(?:no\s+tome|do\s+not\s+take|न\s+लें|எடுக்க\s+வேண்டாம்|తీసుకోవద్దు|ತೆಗೆದುಕೊಳ್ಳಬೇಡಿ|കഴിക്കരുത്|নেবেন\s+না|घेऊ\s+नका|લેશો\s+નહીં|ਨਾ\s+ਲਵੋ|ନିଅନ୍ତୁ\s+ନାହିଁ)"),
+        (r"\bdo\s+not\s+stop\b", r"(?:no\s+suspenda|no\s+deje|do\s+not\s+stop|बंद\s+न\s+करें|நிறுத்த\s+வேண்டாம்|ఆపవద్దు|ನಿಲ್ಲಿಸಬೇಡಿ|നിർത്തരുത്|বন্ধ\s+করবেন\s+না|थांबवू\s+नका|બંધ\s+કરશો\s+નહીં|ਬੰਦ\s+ਨਾ\s+ਕਰੋ|ବନ୍ଦ\s+କରନ୍ତୁ\s+ନାହିଁ)"),
+    ]
+    for eng_pat, loc_pat in negation_patterns:
+        if re.search(eng_pat, task.title, re.IGNORECASE) or (task.description and re.search(eng_pat, task.description, re.IGNORECASE)):
+            has_negation = bool(re.search(eng_pat, combined, re.IGNORECASE) or re.search(loc_pat, combined, re.IGNORECASE) or re.search(r"\b(?:no|not|never|don'?t)\b", combined, re.IGNORECASE))
+            if not has_negation:
+                notes.append(f"Clinical negation '{eng_pat}' missing from translated notification.")
+
+    # 4. Check Banned Phrases
     from backend.notifications.formatter import BANNED_NOTIFICATION_PHRASES
     for pat in BANNED_NOTIFICATION_PHRASES:
         m = pat.search(combined)
         if m:
             notes.append(f"Prohibited promotional or clinical claim phrase detected: '{m.group(0)}'.")
+
+    # 5. Channel truncation check
+    if combined.endswith("...") and len(notes) > 0:
+        notes.append("Channel truncation dropped essential clinical invariants.")
 
     is_verified = (len(notes) == 0)
     status = TranslationStatus.VERIFIED.value if is_verified else TranslationStatus.REVIEW_REQUIRED.value
