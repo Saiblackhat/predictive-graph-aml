@@ -300,8 +300,11 @@ body.landing-mode .icon-btn{border-radius:9px}
 @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-11px)}}
 @keyframes engineBreath{0%,100%{transform:scale(1);box-shadow:0 0 70px rgba(255,98,66,.12),inset 0 0 25px rgba(255,98,66,.045)}50%{transform:scale(1.025);box-shadow:0 0 95px rgba(255,98,66,.24),inset 0 0 32px rgba(255,98,66,.08)}}
 
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+
 @media(prefers-reduced-motion: reduce){
-  .hero-orbit, .hero-dot, .landing-engine{animation:none!important}
+  .hero-orbit, .hero-dot, .landing-engine, .core-orbit, .core-plus, .core-dot{animation:none!important}
 }
 
 @media(max-width:1100px){
@@ -311,11 +314,35 @@ body.landing-mode .icon-btn{border-radius:9px}
   .main{grid-template-columns:176px minmax(0,1fr) 320px}
 }
 @media(max-width:850px){
-  body.landing-mode .top{height:auto;min-height:72px;flex-wrap:wrap;padding:12px 16px}.top-nav{order:4;width:100%;overflow:auto;justify-content:flex-start}.top-nav button{font-size:10px}
-  body.landing-mode .casebar{margin-left:auto}.landing-hero{grid-template-columns:1fr;padding:40px 20px 30px}.landing-copy h1{font-size:62px}.landing-visual{height:470px;margin-top:20px;transform:none}
-  .landing-strip{grid-template-columns:1fr 1fr;margin:0 20px}.landing-strip>div{padding:12px;border-bottom:1px solid #1b1b1b}.landing-strip>div:nth-child(2n){border-right:0}
-  .landing-engine{left:39%;top:36%;width:145px;height:145px}.source-float{left:4%;top:12%;transform:scale(.85) rotate(-3deg)}.verified-plan{right:0;bottom:3%;transform:scale(.82);transform-origin:right bottom}
-  .top{height:auto}.main{grid-template-columns:1fr}.sidebar,.right{display:none}.page{padding:20px 16px}
+  .app{height:auto;min-height:100vh}
+  body{overflow:auto}
+  .top{height:auto;min-height:64px;flex-wrap:wrap;padding:10px 14px;gap:8px}
+  .top-nav{display:flex!important;order:4;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:6px 0;gap:8px}
+  .top-nav button{white-space:nowrap;font-size:10px;padding:6px 9px;border:1px solid #222;border-radius:6px;background:#0c0c0c}
+  .top-nav button.active{border-color:var(--orange);color:#fff;background:rgba(255,98,66,.12)}
+  .casebar{width:100%;order:3;margin:0}
+  .case-select{width:100%;min-width:0}
+  .top-actions{order:2;margin-left:auto}
+  .main{grid-template-columns:1fr}
+  .sidebar,.right{display:none}
+  .page{padding:18px 14px 44px}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .hero-case{grid-template-columns:1fr}
+  .intake,.paste-layout{grid-template-columns:1fr}
+  .landing-hero{grid-template-columns:1fr;padding:28px 14px 20px}
+  .landing-copy h1{font-size:46px;line-height:.95}
+  .landing-visual{height:420px;margin-top:12px;transform:scale(0.85);transform-origin:top center}
+  .landing-strip{grid-template-columns:1fr 1fr;margin:0 10px}
+  .landing-strip>div{padding:10px;border-bottom:1px solid #1b1b1b}
+  .landing-strip>div:nth-child(2n){border-right:0}
+  .landing-engine{left:35%;top:34%;width:140px;height:140px}
+  .source-float{left:2%;top:10%;transform:scale(.8) rotate(-3deg)}
+  .verified-plan{right:0;bottom:2%;transform:scale(.8);transform-origin:right bottom}
+  .metrics{overflow-x:auto;justify-content:flex-start;padding:0 12px;gap:12px;height:32px;font-size:7px}
+}
+@media(max-width:440px){
+  .landing-copy h1{font-size:38px}
+  .landing-visual{transform:scale(0.72);transform-origin:top center;height:360px}
 }
 </style>
 </head>
@@ -325,22 +352,25 @@ body.landing-mode .icon-btn{border-radius:9px}
   <div class="brand">
     <div class="brandmark"></div><div class="logo">CAREBRIDGE</div><div class="workspace-tag">CLINICAL WORKSPACE</div>
   </div>
-  <nav class="top-nav" aria-label="Primary">
+  <nav class="top-nav" aria-label="Primary Navigation">
     <button data-page="overview" class="active">Intelligence</button>
+    <button data-page="intake">Intake</button>
     <button data-page="careplan">Care Plan</button>
     <button data-page="meds">Medications</button>
     <button data-page="timeline">Journey</button>
-    <button data-page="providers">Providers</button>
     <button data-page="safety">Safety Gate</button>
+    <button data-page="alerts">Alerts</button>
+    <button data-page="providers">Providers</button>
+    <button data-page="audit">Audit</button>
   </nav>
   <div class="casebar">
-    <select class="case-select" id="caseSelect" aria-label="Synthetic case"></select>
+    <select class="case-select" id="caseSelect" aria-label="Synthetic clinical case selection"></select>
     <div class="case-state" id="caseState">● LOADING CASE</div>
   </div>
   <div class="top-actions">
-    <div class="lang-picker" aria-label="Interface language">
+    <div class="lang-picker" aria-label="Interface language selector">
       <span class="lang-globe">◎</span>
-      <select id="languageSelect" aria-label="Interface language">
+      <select id="languageSelect" aria-label="Interface language selector">
         <option value="en">English (en)</option>
         <option value="es">Español (es)</option>
         <option value="hi">हिन्दी (hi)</option>
@@ -357,7 +387,7 @@ body.landing-mode .icon-btn{border-radius:9px}
     </div>
     <button class="btn ghost-orange" data-page="intake">＋ Document intake</button>
     <button class="btn orange" data-page="paste">Paste / Run pipeline →</button>
-    <button class="btn icon-btn" id="notifBtn" title="Alerts & Notification Center">◉</button>
+    <button class="btn icon-btn" id="notifBtn" title="Alerts & Notification Center" aria-label="Alerts & Notification Center">◉</button>
   </div>
 </header>
 <div class="metrics">
@@ -365,7 +395,7 @@ body.landing-mode .icon-btn{border-radius:9px}
 </div>
 
 <div class="main workspace-grid">
-<aside class="sidebar">
+<aside class="sidebar" aria-label="Clinical Navigation">
   <div class="nav-title">START</div>
   <button class="nav active" data-page="overview"><span class="num">00</span><span class="label">Case Overview</span><span class="check">•</span></button>
   <button class="nav" data-page="intake"><span class="num">01</span><span class="label">Document Intake</span><span class="badge" id="docBadge">NEW</span></button>
@@ -408,12 +438,12 @@ body.landing-mode .icon-btn{border-radius:9px}
     <div class="landing-visual">
       <div class="landing-validation">
         <span>VALIDATION GATE</span>
-        <b id="landingGate">SAFE / ORGANIZED</b>
-        <i>VERIFIED</i>
+        <b id="landingGate">INITIALIZING…</b>
+        <i id="landingGateSub">STATUS</i>
       </div>
 
       <div class="source-float">
-        <div class="float-head"><span>● SOURCE SUMMARY</span><b id="floatCase">SYNTH-PT-801</b></div>
+        <div class="float-head"><span>● SOURCE SUMMARY</span><b id="floatCase">—</b></div>
         <div class="source-lines">
           <i></i><i></i><i class="hot"></i><i></i><i class="hot"></i><i></i>
         </div>
@@ -438,7 +468,7 @@ body.landing-mode .icon-btn{border-radius:9px}
       </div>
 
       <div class="hero-caption">
-        <span>GROUNDING</span><b id="landingGround">100%</b>
+        <span>GROUNDING</span><b id="landingGround">—</b>
       </div>
     </div>
   </div>
@@ -628,7 +658,7 @@ function normalize(raw) {
 }
 
 function titleOf(x) {
-  return first(x.title, x.name, x.action, x.directive, x.task, x.description, "Untitled directive");
+  return first(x.title, x.name, x.action, x.directive, x.task, x.hazard_code, x.message, x.description, "Untitled directive");
 }
 function statusOf(x) {
   return String(first(x.status, x.state, x.safety_status, x.classification, "PENDING")).toUpperCase();
@@ -670,8 +700,13 @@ function renderAll() {
     landingGate.textContent = n.safety;
     landingGate.style.color = isBlock ? "var(--red)" : isReview ? "var(--orange2)" : "#f4eee9";
   }
+  const landingGateSub = $("#landingGateSub");
+  if (landingGateSub) {
+    landingGateSub.textContent = isBlock ? "BLOCKED" : isReview ? "REVIEW REQUIRED" : "SAFE / RELEASABLE";
+    landingGateSub.style.color = isBlock ? "var(--red)" : isReview ? "var(--orange2)" : "var(--green)";
+  }
   const landingGround = $("#landingGround");
-  if (landingGround) landingGround.textContent = groundingText !== "—" ? groundingText : "100%";
+  if (landingGround) landingGround.textContent = groundingText;
   const floatCase = $("#floatCase");
   if (floatCase) floatCase.textContent = patient;
 
@@ -883,7 +918,9 @@ function renderInspector(tab, n) {
   if (!el) return;
 
   if (tab === "evidence") {
-    const spanText = x.evidence ? `[${x.evidence.char_start} : ${x.evidence.char_end}]` : "[0:128]";
+    const sStart = x.evidence ? (x.evidence.start_offset ?? x.evidence.char_start ?? 0) : 0;
+    const sEnd = x.evidence ? (x.evidence.end_offset ?? x.evidence.char_end ?? 0) : 0;
+    const spanText = x.evidence ? `[${sStart} : ${sEnd}]` : "[—]";
     const sectionName = x.evidence?.section || "Follow-Up Instructions";
     const plain = first(x.plain_language, x.patient_language, x.description, "Plain language wording.");
     el.innerHTML = `
