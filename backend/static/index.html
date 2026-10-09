@@ -268,14 +268,10 @@ body.landing-mode .icon-btn{border-radius:9px}
 .hero-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--orange);box-shadow:0 0 14px var(--orange);z-index:3;animation:heroFloat 3.5s ease-in-out infinite}
 .hd1{left:17%;top:27%}.hd2{right:23%;top:23%;animation-delay:.7s}.hd3{right:19%;bottom:22%;animation-delay:1.3s}
 
-.landing-engine{position:absolute;z-index:5;left:44%;top:39%;width:180px;height:180px;border:1px solid rgba(255,98,66,.38);border-radius:26px;background:linear-gradient(145deg,#17110f,#0a0a0a);box-shadow:0 0 70px rgba(255,98,66,.13),inset 0 0 25px rgba(255,98,66,.045);display:grid;place-items:center;animation:engineBreath 4s ease-in-out infinite}
-.landing-engine:before{content:"";position:absolute;inset:-14px;border:1px solid rgba(255,98,66,.12);border-radius:32px}
-.engine-label{position:absolute;top:29px;text-align:center;font-size:7px;color:#686868;letter-spacing:.16em;line-height:1.6;font-weight:600}.engine-label b{color:#ff8066}
-.engine-plus{width:58px;height:58px;position:relative}
-.engine-plus span{position:absolute;left:50%;top:50%;background:#fff9f5;border-radius:7px;box-shadow:0 0 25px rgba(255,98,66,.65)}
-.engine-plus span:first-child{width:13px;height:55px;transform:translate(-50%,-50%)}
-.engine-plus span:last-child{height:13px;width:55px;transform:translate(-50%,-50%)}
-.engine-plus:after{content:"";position:absolute;width:17px;height:17px;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--orange);border-radius:5px;box-shadow:0 0 20px var(--orange)}
+.landing-engine{position:absolute;z-index:5;left:44%;top:39%;width:180px;height:180px;border:1px solid rgba(255,98,66,.38);border-radius:26px;background:linear-gradient(145deg,#17110f,#0a0a0a);box-shadow:0 0 70px rgba(255,98,66,.18),inset 0 0 25px rgba(255,98,66,.05);display:grid;place-items:center;animation:engineBreath 4s ease-in-out infinite;overflow:hidden}
+.landing-engine:before{content:"";position:absolute;inset:-14px;border:1px solid rgba(255,98,66,.12);border-radius:32px;pointer-events:none}
+.engine-label{position:absolute;bottom:10px;text-align:center;font-size:7px;color:#888;letter-spacing:.16em;line-height:1.4;font-weight:600;background:rgba(5,5,5,.85);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,98,66,.2)}.engine-label b{color:#ff8066}
+.engine-symbol-img{width:138px;height:138px;border-radius:50%;object-fit:cover;box-shadow:0 0 35px rgba(255,98,66,.45);border:1px solid rgba(255,98,66,.5)}
 
 .verified-plan{position:absolute;right:3%;bottom:10%;width:310px;border:1px solid #252525;border-radius:13px;background:rgba(7,7,7,.92);z-index:6;box-shadow:0 30px 70px rgba(0,0,0,.45);overflow:hidden}
 .plan-head{display:flex;justify-content:space-between;padding:12px 15px;border-bottom:1px solid #202020;font-size:7px;color:#6b6b6b;letter-spacing:.1em;font-weight:600}.plan-head b{color:#777}
@@ -350,7 +346,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <div class="app">
 <header class="top">
   <div class="brand">
-    <div class="brandmark"></div><div class="logo">CAREBRIDGE</div><div class="workspace-tag">CLINICAL WORKSPACE</div>
+    <div class="brandmark"><img src="/carebridge_symbol.jpg" alt="CareBridge" style="width:100%;height:100%;border-radius:7px;object-fit:cover"></div><div class="logo">CAREBRIDGE</div><div class="workspace-tag">CLINICAL WORKSPACE</div>
   </div>
   <nav class="top-nav" aria-label="Primary Navigation">
     <button data-page="overview" class="active">Intelligence</button>
@@ -456,8 +452,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
       <div class="hero-dot hd1"></div><div class="hero-dot hd2"></div><div class="hero-dot hd3"></div>
 
       <div class="landing-engine">
-        <div class="engine-label">CAREBRIDGE<br><b>ENGINE</b></div>
-        <div class="engine-plus"><span></span><span></span></div>
+        <img src="/carebridge_symbol.jpg" alt="CareBridge Celestial Healing Emblem" class="engine-symbol-img" />
+        <div class="engine-label">CAREBRIDGE<br><b>INTELLIGENCE</b></div>
       </div>
 
       <div class="verified-plan">

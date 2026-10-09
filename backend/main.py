@@ -152,3 +152,20 @@ def serve_app() -> HTMLResponse:
     if frontend_path.exists():
         return HTMLResponse(content=frontend_path.read_text(encoding="utf-8"))
     return HTMLResponse(content="<h1>CareBridge API Active</h1><p>Cinematic UI building...</p>")
+
+
+from fastapi.responses import FileResponse
+
+
+@app.get("/carebridge_symbol.jpg")
+@app.get("/static/carebridge_symbol.jpg")
+def serve_symbol() -> FileResponse:
+    """Serve the official CareBridge realistic sacred geometry symbol."""
+    sym_path = Path(__file__).parent / "static" / "carebridge_symbol.jpg"
+    if sym_path.exists():
+        return FileResponse(str(sym_path), media_type="image/jpeg")
+    frontend_sym = Path(__file__).parent.parent / "frontend" / "carebridge_symbol.jpg"
+    if frontend_sym.exists():
+        return FileResponse(str(frontend_sym), media_type="image/jpeg")
+    raise HTTPException(status_code=404, detail="Symbol not found")
+
