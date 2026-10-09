@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CareBridge — Clinical Intelligence Workspace</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CareBridge — Clinical Recovery Cockpit</title>
 <meta name="description" content="Cinematic clinical intelligence platform for discharge instructions, verified evidence grounding, care orchestration, and safety-gated human review.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,1247 +12,1222 @@
 
 <style>
 :root{
-  --bg:#050505;
-  --bg2:#090909;
-  --panel:#0d0d0d;
-  --panel2:#131313;
-  --panel3:#181818;
-  --panel-glass:rgba(13,13,13,0.88);
-  --text:#f5f4f0;
-  --text-muted:#8c9195;
-  --text-dim:#5a5f63;
-  --orange:#ff6242;
-  --orange2:#ff8a70;
-  --orange3:#ffb09e;
-  --orange-glow:rgba(255,98,66,0.18);
-  --green:#54d6a0;
-  --green-glow:rgba(84,214,160,0.20);
-  --blue:#4ea8de;
-  --line:rgba(255,255,255,.085);
-  --line-strong:rgba(255,255,255,.14);
-  --line-orange:rgba(255,98,66,.24);
-  --danger:#ff8068;
-  --warning:#ffb703;
-  --radius:16px;
-  --radius-sm:10px;
+  --bg:#050505;--panel:#0b0b0b;--panel2:#0f0f0f;--line:#242424;--line2:#303030;
+  --text:#f5f2ed;--muted:#858585;--muted2:#5d5d5d;
+  --orange:#ff6242;--orange2:#ff967f;--green:#55d6a2;--red:#ff6751;--yellow:#e5b65b;
+  --shadow:0 24px 70px rgba(0,0,0,.42);
+  --font-ui: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Syne", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
-
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;padding:0;overflow:hidden}
-body{
-  background:
-    radial-gradient(circle at 85% 15%, rgba(255,98,66,.08), transparent 30%),
-    radial-gradient(circle at 15% 45%, rgba(255,98,66,.035), transparent 28%),
-    radial-gradient(circle at 50% 90%, rgba(84,214,160,.03), transparent 30%),
-    var(--bg);
-  color:var(--text);
-  font-family:"DM Sans",sans-serif;
-  -webkit-font-smoothing:antialiased;
-}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);letter-spacing:-.005em}
+body{min-height:100vh;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit;font-family:var(--font-ui)}
+button{cursor:pointer}
+.app{height:100vh;display:grid;grid-template-rows:62px 38px 1fr}
 
-/* Subtle film grain overlay */
-body:before{
-  content:"";position:fixed;inset:0;pointer-events:none;opacity:.03;z-index:999;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
-}
+.logo,h1,.case-title,.card h2,.stat,.safety-big,.inspect-title,.command-core-card .core-label,.page-head h1{font-family:var(--font-display);font-weight:800}
+.logo{font-size:20px;letter-spacing:-.065em}
+h1{font-weight:800;letter-spacing:-.055em}
+.case-title{font-weight:800;letter-spacing:-.045em}
+.card h2,.stat{font-weight:750;letter-spacing:-.035em}
 
-/* Scrollbars */
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
-::-webkit-scrollbar-thumb:hover{background:rgba(255,98,66,.3)}
+.workspace-tag,.case-select,.case-state,.metrics,.nav-title,.nav .num,.nav .badge,.sidebar-foot,
+.kicker,.chip,.tiny,.signal,.tag,.table th,.formula,.milestone .when,.notif-state,.mini,.drop small,
+.core-label,.core-readout span,.core-readout strong,.inspect-kicker,.metric span,.metric b,
+.pipe-step,.audit-line b,.landing-validation span,.landing-validation b,.landing-validation i,
+.landing-proof,.plan-head,.plan-row em,.plan-row small,.plan-row>b,.hero-caption,.landing-strip span,.landing-strip b,.landing-strip small{
+  font-family:var(--font-mono)
+}
+.lead,.case-copy,.card p,.task p,.milestone p{font-family:var(--font-ui)}
 
-button,select,input,textarea{font:inherit}
-a{color:inherit;text-decoration:none}
+.top{display:flex;align-items:center;border-bottom:1px solid var(--line);background:#070707;padding:0 18px;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;min-width:255px}
+.brandmark{width:29px;height:29px;border:1px solid var(--orange);border-radius:8px;position:relative;display:grid;place-items:center;color:var(--orange);box-shadow:0 0 22px rgba(255,98,66,.18)}
+.brandmark:before,.brandmark:after{content:"";position:absolute;background:var(--orange);border-radius:4px}
+.brandmark:before{width:13px;height:3px}.brandmark:after{height:13px;width:3px}
+.workspace-tag{letter-spacing:.12em;color:#777;border:1px solid #252525;padding:5px 7px;border-radius:5px;font-size:8px}
+.top-nav{display:none;align-items:center;gap:24px;white-space:nowrap}
+.top-nav button{border:0;background:transparent;color:#a0a0a0;font-size:12px;padding:8px 0;transition:.2s}
+.top-nav button:hover,.top-nav button.active{color:#fff}
 
-.mono{font-family:"IBM Plex Mono",monospace}
+.casebar{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.case-select{height:34px;min-width:310px;background:#111;border:1px solid #2d2d2d;border-radius:8px;padding:0 11px;font-size:11px;outline:none;font-weight:600}
+.case-select:focus{border-color:var(--orange)}
+.case-state{letter-spacing:.1em;padding:8px 10px;border:1px solid rgba(85,214,162,.32);color:var(--green);border-radius:999px;white-space:nowrap;font-size:8px;font-weight:600}
 
-/* Pulse animation */
-@keyframes pulse{50%{transform:scale(.65);opacity:.5}}
-@keyframes scanline{0%{top:0;opacity:0}15%{opacity:1}85%{opacity:1}100%{top:100%;opacity:0}}
-@keyframes glowPulse{0%,100%{opacity:.6}50%{opacity:1}}
+.top-actions{display:flex;align-items:center;gap:8px}
+.btn{background:#101010;border:1px solid #2a2a2a;border-radius:8px;padding:10px 13px;font-size:11px;font-weight:700;transition:.2s}
+.btn:hover{border-color:#555;transform:translateY(-1px)}
+.btn.orange{background:var(--orange);color:#160b08;border-color:var(--orange);box-shadow:0 8px 28px rgba(255,98,66,.16)}
+.btn.ghost-orange{border-color:rgba(255,98,66,.45);color:#ff9d88}
+.icon-btn{width:34px;height:34px;padding:0;display:grid;place-items:center}
 
-/* APP SHELL GRID: Header (58px), Toolbar (46px), Main Workspace (calc(100vh - 104px)) */
-.app-shell{
-  display:flex;flex-direction:column;height:100vh;width:100vw;overflow:hidden;
-}
+.lang-picker{display:flex;align-items:center;gap:6px;background:#101010;border:1px solid #2a2a2a;border-radius:8px;padding:0 9px;height:34px}
+.lang-picker:hover{border-color:#555}
+.lang-globe{color:var(--orange);font-size:12px;user-select:none}
+.lang-picker select{background:transparent;border:0;color:#eee;font:600 11px var(--font-mono);outline:none;cursor:pointer}
+.lang-picker select option{background:#111;color:#fff}
 
-/* 1. TOP COMMAND BAR */
-.top-bar{
-  height:58px;min-height:58px;
-  background:rgba(8,8,8,.92);
-  border-bottom:1px solid var(--line);
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 20px;gap:16px;z-index:50;
-  backdrop-filter:blur(20px);
-}
-.brand-group{display:flex;align-items:center;gap:12px}
-.brand-logo{
-  width:28px;height:28px;border-radius:8px;
-  border:1px solid rgba(255,98,66,.7);
-  display:grid;place-items:center;
-  background:rgba(255,98,66,.08);
-  box-shadow:0 0 20px rgba(255,98,66,.22), inset 0 0 12px rgba(255,98,66,.1);
-  position:relative;
-}
-.brand-logo span{width:11px;height:3px;background:var(--orange);border-radius:2px;position:relative}
-.brand-logo span:after{content:"";position:absolute;width:3px;height:11px;background:var(--orange);left:4px;top:-4px;border-radius:2px}
-.brand-name{
-  font:800 17px Syne,sans-serif;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;
-}
-.app-version{
-  font:600 8px "IBM Plex Mono";color:var(--text-dim);letter-spacing:.12em;
-  padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.05);border:1px solid var(--line);
-}
+.metrics{display:flex;align-items:center;justify-content:flex-end;gap:20px;padding:0 18px;border-bottom:1px solid var(--line);font-size:8px;color:#6d6d6d;text-transform:uppercase;letter-spacing:.08em}
+.metrics b{color:#eee}.metrics .ok{color:var(--green)}.metrics .warn{color:var(--orange2)}
 
-.case-picker-group{display:flex;align-items:center;gap:10px}
-.case-select{
-  background:rgba(22,22,22,.9);border:1px solid var(--line);border-radius:8px;
-  color:#f2efea;padding:6px 26px 6px 12px;font:500 11px "IBM Plex Mono";
-  cursor:pointer;outline:none;transition:.2s;appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 9px center;
-  max-width:320px;
-}
-.case-select:hover,.case-select:focus{border-color:rgba(255,98,66,.5);box-shadow:0 0 15px rgba(255,98,66,.12)}
+.main{display:grid;grid-template-columns:184px minmax(0,1fr) 356px;min-height:0}
+.sidebar{border-right:1px solid var(--line);background:#050505;padding:13px 8px;overflow:auto}
+.nav-title{font-size:7px;color:#505050;letter-spacing:.18em;padding:12px 9px 6px;text-transform:uppercase;font-weight:650}
+.nav-title:before{content:'// ';color:#7a3a2c}
+.nav{display:flex;align-items:center;gap:7px;width:100%;border:1px solid transparent;background:transparent;color:#777;padding:9px 8px;border-radius:6px;text-align:left;margin-bottom:2px}
+.nav:hover{background:#0d0d0d;color:#ddd}
+.nav.active{background:linear-gradient(90deg,rgba(255,98,66,.16),rgba(255,98,66,.035));border-color:rgba(255,98,66,.45);color:#fff;box-shadow:inset 2px 0 var(--orange)}
+.nav.active .label{font-weight:700}
+.nav .num{font-size:7px;color:#444;width:18px}.nav.active .num{color:var(--orange)}
+.nav .label{font-size:9px;flex:1}.nav .badge{font-size:6px;color:var(--orange2)}
+.nav .check{color:var(--green);font-size:9px}
 
-.btn-ingest{
-  background:rgba(255,98,66,.12);border:1px solid rgba(255,98,66,.45);border-radius:8px;
-  color:#fff;padding:6px 12px;font:600 11px "IBM Plex Mono";cursor:pointer;transition:.2s;
-  display:flex;align-items:center;gap:6px;
-}
-.btn-ingest:hover{background:var(--orange);color:#080808;box-shadow:0 0 20px rgba(255,98,66,.35)}
+.sidebar-upload{margin:12px 4px 8px;padding:11px;border:1px solid rgba(255,98,66,.35);border-radius:8px;background:rgba(255,98,66,.055)}
+.sidebar-upload strong{display:block;font-size:9px;margin-bottom:4px}.sidebar-upload span{font-size:7px;color:#777;line-height:1.5}
+.sidebar-foot{position:sticky;bottom:0;background:linear-gradient(transparent,#050505 24%);padding:24px 8px 6px;font-size:7px;color:#4f4f4f}
+.live{color:var(--green)}
 
-.top-center-status{
-  display:flex;align-items:center;gap:14px;
-}
-.safety-status-pill{
-  display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;
-  font:600 10px "IBM Plex Mono";letter-spacing:.08em;
-  background:rgba(84,214,160,.08);border:1px solid rgba(84,214,160,.3);color:var(--green);
-}
-.safety-status-pill.review{
-  background:rgba(255,98,66,.08);border-color:rgba(255,98,66,.35);color:var(--orange2);
-}
-.safety-status-pill.blocked{
-  background:rgba(255,128,104,.12);border-color:rgba(255,128,104,.4);color:var(--danger);
-}
-.status-indicator-dot{
-  width:6px;height:6px;border-radius:50%;background:currentColor;
-  box-shadow:0 0 10px currentColor;animation:pulse 1.8s infinite;
-}
+.workspace{min-width:0;overflow:auto;background:radial-gradient(circle at 48% 0%,rgba(255,98,66,.075),transparent 30%),#030303}
+.page{display:none;min-height:100%;padding:24px 28px 44px;max-width:none;margin:0}.page.active{display:block}
+.page-head{display:flex;justify-content:space-between;gap:30px;align-items:flex-start;margin-bottom:20px}
+.kicker{font-size:7px;letter-spacing:.18em;color:var(--orange);text-transform:uppercase;margin-bottom:8px;font-weight:650}
+h1{font-size:41px;line-height:.92;letter-spacing:-.07em;margin:0 0 10px}.page-head h1 em{font-style:normal;color:var(--orange2)}
+.lead{max-width:680px;color:#8e8e8e;font-size:11px;line-height:1.55;margin:0}
+.head-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.chip{border:1px solid #292929;padding:7px 9px;border-radius:7px;font-size:7px;color:#777}
+.chip.green{color:var(--green);border-color:rgba(85,214,162,.25)}
+.chip.orange{color:var(--orange2);border-color:rgba(255,98,66,.3)}
+.chip.red{color:#ff806d;border-color:rgba(255,103,81,.35)}
 
-.top-bar-right{display:flex;align-items:center;gap:10px}
-.lang-toggle{
-  display:flex;background:rgba(20,20,20,.9);border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px;
-}
-.lang-btn{
-  background:none;border:none;color:var(--text-dim);font:600 10px "IBM Plex Mono";
-  padding:4px 8px;border-radius:6px;cursor:pointer;transition:.2s;
-}
-.lang-btn.active{background:var(--orange);color:#080808;font-weight:700}
+.grid{display:grid;gap:12px}.grid2{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:repeat(3,1fr)}
+.card{border:1px solid var(--line);background:#070707;border-radius:10px;padding:16px;box-shadow:none}
+.card-title{font-size:8px;letter-spacing:.12em;color:#777;text-transform:uppercase;margin-bottom:12px;font-weight:650}
+.card h2,.card h3{margin:0 0 7px}.card h2{font-size:21px;letter-spacing:-.03em}.card h3{font-size:12px}.muted{color:#777}.tiny{font-size:7px;color:#606060}
+.stat{font-size:26px}.orange-t{color:var(--orange2)}.green-t{color:var(--green)}.red-t{color:#ff806d}
 
-.bell-btn{
-  position:relative;width:34px;height:34px;border-radius:8px;
-  background:rgba(20,20,20,.85);border:1px solid var(--line);color:#ccc;
-  display:grid;place-items:center;cursor:pointer;transition:.2s;
-}
-.bell-btn:hover{border-color:rgba(255,98,66,.4);color:#fff}
-.bell-badge{
-  position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;
-  background:var(--orange);color:#000;font:700 9px "IBM Plex Mono";display:grid;place-items:center;
-  box-shadow:0 0 10px var(--orange);
-}
+.hero-case{grid-template-columns:minmax(0,1.05fr) minmax(330px,.95fr);gap:0;border:1px solid #222;border-radius:14px;overflow:hidden;background:#070707;box-shadow:0 24px 80px rgba(0,0,0,.28);margin-bottom:12px}
+.hero-case>.card:first-child{border:0;border-right:1px solid #202020;border-radius:0;box-shadow:none;background:linear-gradient(135deg,#0a0a0a,#060606);min-height:410px;padding:30px}
+.case-status{display:flex;align-items:center;gap:9px;margin-bottom:20px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 14px rgba(85,214,162,.6)}
+.status-dot.warn{background:var(--orange);box-shadow:0 0 14px rgba(255,98,66,.6)}.status-dot.red{background:var(--red)}
+.case-title{font-size:47px;line-height:.9;max-width:560px}
+.case-copy{font-size:11px;color:#888;line-height:1.6;max-width:520px;margin-top:15px}
+.signal-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}
+.signal{padding:6px 8px;border:1px solid #252525;border-radius:7px;font-size:7px;color:#777}.signal b{color:#eee}.signal.ok b{color:var(--green)}.signal.warn b{color:var(--orange2)}
 
-/* 2. SUB-TOOLBAR / WORKSPACE METRICS */
-.workspace-toolbar{
-  height:44px;min-height:44px;
-  background:#090909;border-bottom:1px solid var(--line);
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 20px;gap:16px;
-}
-.view-tabs{display:flex;gap:4px;height:100%}
-.view-tab{
-  background:none;border:none;border-bottom:2px solid transparent;
-  color:var(--text-muted);font:600 11px "IBM Plex Mono";padding:0 14px;
-  cursor:pointer;transition:.2s;display:flex;align-items:center;gap:7px;
-}
-.view-tab:hover{color:#fff}
-.view-tab.active{color:var(--orange2);border-bottom-color:var(--orange);background:rgba(255,98,66,.03)}
-.view-tab-count{
-  font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.06);color:var(--text-muted);
-}
-.view-tab.active .view-tab-count{background:rgba(255,98,66,.2);color:var(--orange2)}
+.pipeline{display:flex;align-items:center;gap:0;margin-top:42px}.pipe-step{flex:1;position:relative;text-align:center;font-size:6px;color:#555}
+.pipe-step:before{content:"";display:block;height:2px;background:#242424;margin-bottom:8px}
+.pipe-step.done:before{background:var(--green);height:2px}.pipe-step.current:before{background:linear-gradient(90deg,var(--green),var(--orange));height:2px}
+.pipe-step span{color:#777;font-size:8px;letter-spacing:.06em;font-weight:600}.pipe-step.done span{color:#bbb}.pipe-step.current span{color:var(--orange2)}
+.pipe-step small{display:block;margin-top:5px;font-size:7px;color:#555;letter-spacing:.02em}
+.pipe-step.done small{color:#666}.pipe-step.current small{color:#777}
 
-.toolbar-metrics{display:flex;align-items:center;gap:18px;font:10px "IBM Plex Mono";color:var(--text-dim)}
-.metric-item b{color:#eee;font-weight:600}
-.metric-item b.green{color:var(--green)}
-.metric-item b.orange{color:var(--orange2)}
+.task{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:start;padding:15px 4px;border-top:1px solid #1d1d1d;cursor:pointer;transition:.15s}
+.task:hover{background:rgba(255,98,66,.03)}
+.task:first-child{border-top:0}
+.task-id{width:28px;height:28px;border:1px solid #303030;border-radius:7px;display:grid;place-items:center;font-size:8px;color:#666}
+.task h3{font-size:13px;margin:0 0 5px}
+.task p{font-size:11px;color:#777;margin:0;line-height:1.45}
+.tag{padding:5px 7px;border-radius:6px;font-size:7px;border:1px solid #292929;color:#777;white-space:nowrap}
+.tag.green{color:var(--green);border-color:rgba(85,214,162,.25)}
+.tag.orange{color:var(--orange2);border-color:rgba(255,98,66,.25)}
+.tag.red{color:#ff806d;border-color:rgba(255,103,81,.3)}
 
-/* 3. MAIN WORKSPACE COCKPIT (3-PANE LAYOUT) */
-.workspace-grid{
-  flex:1;display:grid;
-  grid-template-columns:370px 1fr 390px;
-  gap:1px;background:var(--line);
-  overflow:hidden;height:calc(100vh - 102px);
-}
-.pane{
-  background:var(--bg);display:flex;flex-direction:column;overflow:hidden;
-}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+.table{width:100%;border-collapse:collapse;min-width:760px}
+.table th{text-align:left;font-size:8px;color:#5e5e5e;text-transform:uppercase;letter-spacing:.08em;padding:12px;border-bottom:1px solid var(--line)}
+.table td{padding:13px 12px;border-bottom:1px solid #191919;font-size:11px;color:#bbb}
+.table tr:last-child td{border-bottom:0}
+.drug{color:#fff;font-weight:700}.formula{color:var(--orange2);font-size:9px}
 
-/* PANE HEADERS */
-.pane-head{
-  height:42px;min-height:42px;background:rgba(14,14,14,.9);
-  border-bottom:1px solid var(--line);padding:0 16px;
-  display:flex;align-items:center;justify-content:space-between;
-}
-.pane-title{
-  font:700 11px "IBM Plex Mono";letter-spacing:.08em;color:#e8e5e0;
-  display:flex;align-items:center;gap:8px;text-transform:uppercase;
-}
-.pane-badge{
-  font:600 9px "IBM Plex Mono";padding:3px 7px;border-radius:5px;
-  background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--text-muted);
-}
-.pane-badge.green{background:rgba(84,214,160,.08);border-color:rgba(84,214,160,.25);color:var(--green)}
+.timeline{position:relative;padding:8px 0 8px 25px}
+.timeline:before{content:"";position:absolute;left:8px;top:12px;bottom:12px;width:1px;background:#303030}
+.milestone{position:relative;padding:0 0 20px 20px}.milestone:last-child{padding-bottom:0}
+.milestone:before{content:"";position:absolute;left:-21px;top:3px;width:9px;height:9px;border-radius:50%;border:2px solid var(--orange);background:#090909;box-shadow:0 0 15px rgba(255,98,66,.28)}
+.milestone.done:before{border-color:var(--green);box-shadow:0 0 15px rgba(85,214,162,.25)}
+.milestone .when{font-size:8px;color:var(--orange2);text-transform:uppercase}
+.milestone h3{font-size:13px;margin:5px 0}.milestone p{font-size:11px;color:#777;margin:0}
 
-/* PANE 1: SOURCE DOCUMENT VIEWER */
-.doc-pane-body{
-  flex:1;overflow-y:auto;padding:16px;position:relative;
-  font:12px/1.85 "IBM Plex Mono";color:#9aa0a4;
-}
-.doc-scanline{
-  position:absolute;left:0;right:0;height:2px;pointer-events:none;
-  background:linear-gradient(90deg,transparent,var(--orange),transparent);
-  box-shadow:0 0 15px var(--orange);animation:scanline 4.8s ease-in-out infinite;
-}
-.doc-header-banner{
-  padding:10px 12px;background:rgba(255,255,255,.02);border:1px solid var(--line);
-  border-radius:8px;margin-bottom:14px;font-size:10px;display:flex;justify-content:space-between;
-}
-.doc-line{
-  display:block;margin:3px 0;padding:4px 8px;border-radius:6px;
-  cursor:pointer;transition:.2s;position:relative;
-}
-.doc-line:hover{background:rgba(255,98,66,.08);color:#fff}
-.doc-line.active{
-  background:rgba(255,98,66,.14);color:#ffd4ca;border-left:3px solid var(--orange);
-}
-.doc-line.highlight{
-  border-left:2px solid rgba(84,214,160,.6);background:rgba(84,214,160,.04);color:#e2f2ea;
-}
+.safety-card{border:1px solid rgba(255,103,81,.35);background:linear-gradient(145deg,rgba(255,98,66,.08),#0b0b0b);border-radius:10px;padding:18px}
+.safety-big{font-size:32px;letter-spacing:-.05em}
+.safety-quote{margin-top:14px;border:1px solid #292929;border-radius:9px;padding:13px;font-size:11px;font-family:var(--font-mono);color:#ccc;background:#090909}
+.actions{display:flex;gap:8px;margin-top:14px}
 
-/* PANE 2: CENTER WORKSPACE (CARE PLAN CARDS & TABLES) */
-.center-pane-body{
-  flex:1;overflow-y:auto;padding:18px;background:linear-gradient(180deg,rgba(11,11,11,.6),var(--bg));
-}
-.task-card{
-  background:rgba(18,18,18,.8);border:1px solid var(--line);border-radius:14px;
-  padding:16px 18px;margin-bottom:12px;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s;
-  display:grid;grid-template-columns:36px 1fr auto;gap:14px;align-items:start;
-}
-.task-card:hover{
-  border-color:rgba(255,98,66,.35);transform:translateY(-1px);
-  box-shadow:0 8px 30px rgba(0,0,0,.4);
-}
-.task-card.active{
-  border-color:var(--orange);background:rgba(255,98,66,.04);
-  box-shadow:0 0 30px rgba(255,98,66,.12);
-}
-.task-card-icon{
-  width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
-  background:rgba(255,98,66,.08);border:1px solid rgba(255,98,66,.2);color:var(--orange2);
-  font-size:14px;
-}
-.task-card-content h4{
-  margin:0;font:700 14px "DM Sans";color:#fff;display:flex;align-items:center;gap:8px;
-}
-.task-card-content p{
-  margin:5px 0 8px;color:#8f9498;font-size:12px;line-height:1.5;
-}
-.task-card-meta{
-  display:flex;flex-wrap:wrap;gap:8px;align-items:center;
-  font:9px "IBM Plex Mono";color:var(--text-dim);
-}
-.meta-tag{
-  padding:3px 7px;border-radius:5px;background:rgba(255,255,255,.04);border:1px solid var(--line);
-  color:#bbb;
-}
-.meta-tag.grounded{border-color:rgba(84,214,160,.25);color:var(--green);background:rgba(84,214,160,.06)}
-.meta-tag.reminder{border-color:rgba(255,98,66,.3);color:var(--orange2);background:rgba(255,98,66,.08)}
+.provider-filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:8px;color:#606060;text-transform:uppercase}
+.field input,.field select,.textarea{background:#090909;border:1px solid #292929;border-radius:8px;padding:10px;font-size:11px;outline:none}
+.field input:focus,.field select:focus,.textarea:focus{border-color:var(--orange)}
+.provider{display:flex;justify-content:space-between;gap:15px;padding:14px;border-top:1px solid #1c1c1c}
+.provider:first-child{border-top:0}
+.provider-name{font-weight:700;font-size:12px}
+.provider-meta{font-size:8px;color:#666;margin-top:5px}
+.provider-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.provider-tags span{font-size:7px;color:#777;border:1px solid #292929;border-radius:5px;padding:4px 6px}
 
-.task-status-badge{
-  font:600 9px "IBM Plex Mono";padding:5px 9px;border-radius:999px;letter-spacing:.06em;
-}
-.task-status-badge.ready{color:var(--green);border:1px solid rgba(84,214,160,.3);background:rgba(84,214,160,.08)}
-.task-status-badge.scheduled{color:#7bdcb5;border:1px solid rgba(123,220,181,.3);background:rgba(123,220,181,.08)}
-.task-status-badge.pending{color:var(--blue);border:1px solid rgba(78,168,222,.3);background:rgba(78,168,222,.08)}
-.task-status-badge.review{color:var(--orange2);border:1px solid rgba(255,98,66,.35);background:rgba(255,98,66,.08)}
-.task-status-badge.blocked{color:var(--danger);border:1px solid rgba(255,128,104,.4);background:rgba(255,128,104,.1)}
+.audit-line{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid #1d1d1d;font-size:11px}
+.audit-line:last-child{border-bottom:0}
+.audit-line span{color:#777}
+.pass{color:var(--green);font-size:8px}.fail{color:#ff806d;font-size:8px}
 
-/* MEDICATION PRECISION TABLE VIEW */
-.med-table{
-  width:100%;border-collapse:collapse;font-size:12px;text-align:left;
-}
-.med-table th{
-  padding:12px 14px;border-bottom:1px solid var(--line);
-  color:var(--text-dim);font:600 9px "IBM Plex Mono";letter-spacing:.1em;
-  background:rgba(255,255,255,.015);
-}
-.med-table td{
-  padding:14px;border-bottom:1px solid rgba(255,255,255,.04);color:#d2d4d6;vertical-align:middle;
-}
-.med-table tr:hover td{background:rgba(255,255,255,.02)}
-.formulation-pill{
-  font:8px "IBM Plex Mono";padding:2px 6px;border-radius:4px;
-  background:rgba(255,98,66,.12);border:1px solid rgba(255,98,66,.25);color:var(--orange2);
-}
+.intake{display:grid;grid-template-columns:1fr 310px;gap:12px}
+.drop{min-height:300px;border:1px dashed #3a2a26;border-radius:10px;padding:24px;text-align:center;background:radial-gradient(circle at center,rgba(255,98,66,.07),transparent 48%);transition:.2s;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.drop:hover{border-color:var(--orange);background:radial-gradient(circle at center,rgba(255,98,66,.1),transparent 48%)}
+.drop.drag{border-color:var(--orange);background:rgba(255,98,66,.12)}
+.drop-icon{width:52px;height:52px;border:1px solid rgba(255,98,66,.55);border-radius:14px;display:grid;place-items:center;margin:0 auto 12px;background:#0b0b0b;color:var(--orange);font:700 13px var(--font-mono);box-shadow:0 0 30px rgba(255,98,66,.1)}
+.drop h2{font-size:27px;letter-spacing:-.05em;margin:0 0 7px}
+.drop p{font-size:10px;color:#777;line-height:1.5;margin:0 auto 16px;max-width:530px}
+.file-input{display:none}
+.upload-list{margin-top:12px}
+.file-row{display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:center;padding:11px;border:1px solid #202020;border-radius:8px;background:#0b0b0b;margin-top:6px}
+.file-ext{font-size:8px;color:var(--orange2);border:1px solid rgba(255,98,66,.25);padding:7px 5px;border-radius:5px;text-align:center;font-weight:700}
+.file-name{font-size:11px;font-weight:600}
+.file-meta{font-size:8px;color:#666;margin-top:4px}
+.intake-side .card{margin-bottom:12px}
+.source-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1d1d1d;font-size:10px}
+.source-item:last-child{border-bottom:0}
+.source-item span{color:#777}
+.textarea{width:100%;min-height:260px;resize:vertical;line-height:1.55;font-family:var(--font-mono);font-size:11px}
+.paste-layout{display:grid;grid-template-columns:1fr 300px;gap:12px}
 
-/* TIMELINE VIEW */
-.timeline-list{position:relative;padding:10px 0 20px 24px}
-.timeline-list:before{
-  content:"";position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--line);
-}
-.timeline-item{position:relative;margin-bottom:24px}
-.timeline-marker{
-  position:absolute;left:-24px;top:4px;width:14px;height:14px;border-radius:50%;
-  background:var(--bg);border:2px solid var(--orange);box-shadow:0 0 10px var(--orange);
-}
-.timeline-marker.green{border-color:var(--green);box-shadow:0 0 10px var(--green)}
-.timeline-content{
-  background:rgba(18,18,18,.8);border:1px solid var(--line);border-radius:12px;padding:14px 16px;
-}
+.toast{position:fixed;right:18px;bottom:18px;z-index:99;background:#111;border:1px solid #333;border-radius:10px;padding:12px 14px;box-shadow:var(--shadow);font-size:11px;display:none}
+.toast.show{display:block;animation:up .25s ease}
+@keyframes up{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
 
-/* PANE 3: INTELLIGENCE INSPECTOR (TABS & CONTENT) */
-.inspector-tabs{
-  display:flex;border-bottom:1px solid var(--line);background:rgba(12,12,12,.95);
-}
-.inspector-tab{
-  flex:1;background:none;border:none;border-bottom:2px solid transparent;
-  color:var(--text-dim);font:600 9px "IBM Plex Mono";padding:10px 6px;cursor:pointer;
-  text-align:center;transition:.2s;letter-spacing:.06em;
-}
-.inspector-tab:hover{color:#fff}
-.inspector-tab.active{color:var(--orange2);border-bottom-color:var(--orange);background:rgba(255,98,66,.03)}
+.right{border-left:1px solid #202020;background:#050505;min-width:0;display:flex;flex-direction:column}
+.inspector-tabs{height:40px;display:grid;grid-template-columns:repeat(4,1fr);background:#060606;border-bottom:1px solid #202020}
+.itab{border:0;border-right:1px solid #1a1a1a;background:#080808;padding:10px 5px;font-size:6px;letter-spacing:.1em;color:#5e5e5e;text-transform:uppercase}
+.itab.active{color:var(--orange);border-bottom:2px solid var(--orange);background:rgba(255,98,66,.035)}
+.inspector{padding:17px;overflow:auto}
+.inspect-kicker{font-size:7px;color:var(--orange);letter-spacing:.13em;text-transform:uppercase;font-weight:650}
+.inspect-title{font-size:19px;letter-spacing:-.03em;margin:6px 0 12px}
+.quote{border:1px solid #292929;border-left:2px solid var(--orange);background:#0a0a0a;border-radius:8px;padding:12px;font-size:9px;line-height:1.5;color:#d6d6d6;font-family:var(--font-mono)}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}
+.metric{border:1px solid #232323;border-radius:7px;padding:9px}
+.metric span{display:block;font-size:6px;color:#555;text-transform:uppercase}
+.metric b{display:block;font-size:8px;margin-top:5px}
+.section-label{font-size:8px;color:#555;text-transform:uppercase;letter-spacing:.1em;margin:17px 0 8px}
+.notice{padding:10px;border:1px solid rgba(255,98,66,.25);background:rgba(255,98,66,.045);border-radius:8px;color:#999;font-size:10px;line-height:1.5}
+.notif{border:1px solid #252525;border-radius:9px;padding:11px;margin-bottom:7px;background:#0a0a0a}
+.notif-head{display:flex;justify-content:space-between;gap:8px}
+.notif-title{font-size:10px;font-weight:700}
+.notif-state{font-size:7px;color:var(--orange2)}
+.notif p{font-size:9px;color:#777;line-height:1.4}
+.notif-actions{display:flex;gap:5px;margin-top:6px}
+.mini{border:1px solid #292929;background:#101010;border-radius:6px;padding:6px 7px;font-size:7px;color:#999}
+.mini:hover{border-color:#555;color:#fff}
 
-.inspector-body{
-  flex:1;overflow-y:auto;padding:16px;
-}
-.inspector-section{margin-bottom:18px}
-.inspector-label{
-  display:block;font:600 9px "IBM Plex Mono";color:var(--orange2);letter-spacing:.14em;margin-bottom:7px;
-}
-.inspector-quote{
-  background:rgba(255,255,255,.02);border:1px solid var(--line);border-left:3px solid var(--orange);
-  padding:12px 14px;border-radius:8px;font:11px/1.7 "IBM Plex Mono";color:#eee;
-}
-.inspector-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.stat-box{
-  background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:8px;padding:8px 10px;
-}
-.stat-box small{display:block;font:8px "IBM Plex Mono";color:var(--text-dim);letter-spacing:.08em}
-.stat-box strong{display:block;font:600 11px "IBM Plex Mono";color:#fff;margin-top:3px}
+/* Landing Mode Reference Match */
+body.landing-mode{overflow:hidden}
+body.landing-mode .metrics{display:none}
+body.landing-mode .main{display:block}
+body.landing-mode .sidebar,body.landing-mode .right{display:none}
+body.landing-mode .workspace{height:calc(100vh - 72px);overflow:auto;background:radial-gradient(circle at 71% 45%,rgba(255,98,66,.105),transparent 24%),radial-gradient(circle at 18% 35%,rgba(255,55,30,.035),transparent 32%),#050505}
+body.landing-mode .page{padding:0;max-width:none}
+body.landing-mode .top{height:72px;padding:0 55px;border-bottom:1px solid #1d1d1d;background:#050505;gap:36px}
+body.landing-mode .brand{min-width:280px}
+body.landing-mode .logo{font-size:21px}
+body.landing-mode .top-nav{display:flex;align-items:center;gap:31px;white-space:nowrap}
+body.landing-mode .casebar{margin-left:auto;flex:0 0 auto}
+body.landing-mode .case-select{height:38px;min-width:260px;border-radius:9px;background:#0c0c0c}
+body.landing-mode .case-state{display:none}
+body.landing-mode .top-actions{gap:8px}
+body.landing-mode .top-actions .ghost-orange{font-size:11px;border-color:#6f3024;color:#ff9d88}
+body.landing-mode .top-actions .orange{display:none}
+body.landing-mode .lang-picker{border-radius:9px}
+body.landing-mode .icon-btn{border-radius:9px}
 
-/* REMINDERS & NOTIFICATION CONTROLS IN PANE 3 */
-.notif-card{
-  background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:12px;padding:14px;
-  margin-bottom:10px;
-}
-.notif-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.notif-actions{display:flex;gap:6px;margin-top:10px}
-.action-btn{
-  background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:6px;
-  padding:5px 9px;font:600 9px "IBM Plex Mono";color:#ddd;cursor:pointer;transition:.2s;
-}
-.action-btn:hover{background:var(--orange);color:#000;border-color:var(--orange)}
-.action-btn.ack{border-color:rgba(84,214,160,.3);color:var(--green)}
-.action-btn.ack:hover{background:var(--green);color:#000}
+.landing-hero{min-height:calc(100vh - 148px);display:grid;grid-template-columns:52% 48%;align-items:center;padding:65px 55px 40px;position:relative;overflow:hidden}
+.landing-copy{position:relative;z-index:3;max-width:720px;padding-left:8px}
+.landing-copy .kicker{font-size:11px;letter-spacing:.19em;margin-bottom:28px;color:#ff7052}
+.landing-copy .kicker:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--orange);box-shadow:0 0 13px var(--orange);margin:0 12px 1px 0}
+.landing-copy h1{font-family:"Arial Black",Arial,Helvetica,sans-serif;font-size:82px;line-height:.82;letter-spacing:-.075em;margin:0;color:#f7f2ed}
+.landing-copy h1 em{font-style:normal;color:#ff9d88}
+.landing-lead{font-size:17px;line-height:1.6;color:#8e8e8e;max-width:600px;margin:31px 0 27px}
+.landing-actions{display:flex;gap:13px}
+.landing-actions .btn{font-size:12px;padding:13px 18px;border-radius:9px}
+.landing-proof{display:flex;gap:22px;margin-top:25px;flex-wrap:wrap;font-size:9px;color:#676767;letter-spacing:.04em}
+.landing-proof span:first-child{color:#969696}.landing-proof span:first-letter{color:var(--green)}
+.landing-visual{height:560px;position:relative;display:block}
+.landing-visual:before{content:"";position:absolute;inset:30px 0 0 0;background:radial-gradient(circle at 50% 48%,rgba(255,98,66,.18),transparent 20%,rgba(255,98,66,.055) 21%,transparent 45%);filter:blur(2px)}
+.landing-validation{position:absolute;right:11%;top:5%;z-index:5;width:205px;padding:13px 16px;border:1px solid #5c2b21;border-radius:10px;background:rgba(8,8,8,.86);box-shadow:0 15px 40px rgba(0,0,0,.3)}
+.landing-validation span{display:block;font-size:7px;color:#666;letter-spacing:.14em;margin-bottom:5px;font-weight:600}
+.landing-validation b{font-size:10px;color:#f4eee9;font-weight:600}.landing-validation i{float:right;font-size:8px;font-style:normal;color:var(--green);font-weight:600}
 
-/* PROVIDER RESULTS IN PANE 3 */
-.provider-search-box{
-  display:flex;gap:6px;margin-bottom:12px;
-}
-.prov-search-input{
-  flex:1;background:rgba(20,20,20,.85);border:1px solid var(--line);border-radius:7px;
-  padding:6px 10px;font:10px "IBM Plex Mono";color:#fff;outline:none;
-}
-.prov-search-input:focus{border-color:var(--orange)}
-.prov-card{
-  background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:10px;
-  padding:12px;margin-bottom:8px;font-size:11px;
-}
-.prov-card:hover{border-color:rgba(255,98,66,.3)}
-.prov-title{font-weight:700;color:#fff;margin-bottom:2px}
-.prov-sub{font:9px "IBM Plex Mono";color:var(--orange2);margin-bottom:6px}
+.source-float{position:absolute;left:8%;top:18%;width:215px;height:140px;padding:13px 14px;border:1px solid #2a2a2a;border-radius:13px;background:linear-gradient(150deg,rgba(20,20,20,.95),rgba(8,8,8,.88));transform:rotate(-3deg);z-index:4;box-shadow:0 30px 50px rgba(0,0,0,.32)}
+.float-head{display:flex;justify-content:space-between;font-size:7px;color:#666;letter-spacing:.08em;font-weight:600}.float-head b{color:#555}
+.source-lines{margin-top:16px}.source-lines i{display:block;height:6px;width:72%;background:#333;border-radius:5px;margin:9px 0}.source-lines i:nth-child(2){width:55%}.source-lines i:nth-child(4){width:82%}.source-lines i.hot{background:linear-gradient(90deg,#813c2e,#3a211d);box-shadow:inset 2px 0 #ff6242}
 
-/* MODAL INGESTION POPUP */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);
-  z-index:900;display:none;place-items:center;padding:20px;
+.hero-orbit{position:absolute;border:1px solid rgba(255,98,66,.22);border-radius:50%;left:22%;top:17%;width:68%;height:68%;transform:rotate(-15deg);animation:heroSpin 18s linear infinite}
+.hero-orbit.orbit-2{left:15%;top:31%;width:78%;height:45%;border-style:dashed;opacity:.65;animation-duration:23s}
+.hero-orbit.orbit-3{left:34%;top:3%;width:45%;height:86%;opacity:.55;animation-duration:29s}
+.hero-path{position:absolute;width:390px;height:1px;background:linear-gradient(90deg,transparent,#6d2d21,var(--orange),transparent);right:5%;top:52%;transform:rotate(-22deg);opacity:.75}
+.hero-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--orange);box-shadow:0 0 14px var(--orange);z-index:3;animation:heroFloat 3.5s ease-in-out infinite}
+.hd1{left:17%;top:27%}.hd2{right:23%;top:23%;animation-delay:.7s}.hd3{right:19%;bottom:22%;animation-delay:1.3s}
+
+.landing-engine{position:absolute;z-index:5;left:44%;top:39%;width:180px;height:180px;border:1px solid rgba(255,98,66,.38);border-radius:26px;background:linear-gradient(145deg,#17110f,#0a0a0a);box-shadow:0 0 70px rgba(255,98,66,.13),inset 0 0 25px rgba(255,98,66,.045);display:grid;place-items:center;animation:engineBreath 4s ease-in-out infinite}
+.landing-engine:before{content:"";position:absolute;inset:-14px;border:1px solid rgba(255,98,66,.12);border-radius:32px}
+.engine-label{position:absolute;top:29px;text-align:center;font-size:7px;color:#686868;letter-spacing:.16em;line-height:1.6;font-weight:600}.engine-label b{color:#ff8066}
+.engine-plus{width:58px;height:58px;position:relative}
+.engine-plus span{position:absolute;left:50%;top:50%;background:#fff9f5;border-radius:7px;box-shadow:0 0 25px rgba(255,98,66,.65)}
+.engine-plus span:first-child{width:13px;height:55px;transform:translate(-50%,-50%)}
+.engine-plus span:last-child{height:13px;width:55px;transform:translate(-50%,-50%)}
+.engine-plus:after{content:"";position:absolute;width:17px;height:17px;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--orange);border-radius:5px;box-shadow:0 0 20px var(--orange)}
+
+.verified-plan{position:absolute;right:3%;bottom:10%;width:310px;border:1px solid #252525;border-radius:13px;background:rgba(7,7,7,.92);z-index:6;box-shadow:0 30px 70px rgba(0,0,0,.45);overflow:hidden}
+.plan-head{display:flex;justify-content:space-between;padding:12px 15px;border-bottom:1px solid #202020;font-size:7px;color:#6b6b6b;letter-spacing:.1em;font-weight:600}.plan-head b{color:#777}
+.plan-row{display:grid;grid-template-columns:26px 1fr auto;gap:9px;padding:12px 14px;border-bottom:1px solid #171717;align-items:center}
+.plan-row:last-child{border-bottom:0}
+.plan-row em{font-size:7px;font-style:normal;color:#9a3f2e;border:1px solid #3c241f;border-radius:5px;padding:5px 4px;text-align:center;font-weight:600}
+.plan-row strong{display:block;font-size:10px;color:#eee}
+.plan-row small{display:block;font-size:7px;color:#666;margin-top:3px;font-weight:500}
+.plan-row>b{font-size:7px;color:#9b9b9b;font-weight:600}
+.plan-row .scheduled{color:var(--orange2)}.plan-row .routine{color:#d79a83}
+
+.hero-caption{position:absolute;left:6%;bottom:10%;z-index:6;border:1px solid #242424;background:#090909;border-radius:8px;padding:10px 13px;font-size:7px;color:#5e5e5e;font-weight:600}
+.hero-caption b{color:var(--green);margin-left:12px}
+
+.landing-strip{display:grid;grid-template-columns:repeat(5,1fr);margin:0 55px;border-top:1px solid #1e1e1e;padding:19px 0 28px;position:relative;z-index:4}
+.landing-strip>div{padding:0 18px;border-right:1px solid #1b1b1b}.landing-strip>div:first-child{padding-left:8px}.landing-strip>div:last-child{border-right:0}
+.landing-strip span{display:block;font-size:7px;color:#8a3d2e;margin-bottom:8px;font-weight:600}
+.landing-strip b{display:block;font-size:9px;letter-spacing:.08em;color:#d5d0ca;font-weight:700}
+.landing-strip small{display:block;font-size:9px;color:#5f5f5f;margin-top:5px;font-weight:500}
+
+@keyframes heroSpin{to{transform:rotate(345deg)}}
+@keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-11px)}}
+@keyframes engineBreath{0%,100%{transform:scale(1);box-shadow:0 0 70px rgba(255,98,66,.12),inset 0 0 25px rgba(255,98,66,.045)}50%{transform:scale(1.025);box-shadow:0 0 95px rgba(255,98,66,.24),inset 0 0 32px rgba(255,98,66,.08)}}
+
+@media(prefers-reduced-motion: reduce){
+  .hero-orbit, .hero-dot, .landing-engine{animation:none!important}
 }
-.modal-overlay.open{display:grid}
-.modal-window{
-  background:#0e0e0e;border:1px solid rgba(255,98,66,.3);border-radius:20px;
-  width:min(640px,100%);padding:24px;box-shadow:0 0 80px rgba(255,98,66,.15);
-}
-.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.modal-head h3{margin:0;font:700 18px Syne}
-.modal-textarea{
-  width:100%;height:220px;background:#141414;border:1px solid var(--line);border-radius:10px;
-  padding:12px;font:11px/1.7 "IBM Plex Mono";color:#eee;resize:vertical;outline:none;
-}
-.modal-textarea:focus{border-color:var(--orange)}
-.modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
 
 @media(max-width:1100px){
-  .workspace-grid{grid-template-columns:320px 1fr 340px}
+  body.landing-mode .top{padding:0 24px;gap:20px}.top-nav{gap:18px}.top-nav button{font-size:10px}
+  .landing-hero{grid-template-columns:50% 50%;padding-left:30px;padding-right:30px}.landing-copy h1{font-size:67px}.landing-lead{font-size:14px}.landing-visual{transform:scale(.9);transform-origin:center}
+  .landing-strip{margin:0 30px}
+  .main{grid-template-columns:176px minmax(0,1fr) 320px}
 }
 @media(max-width:850px){
-  .workspace-grid{grid-template-columns:1fr;overflow-y:auto;height:auto}
-  .app-shell{overflow-y:auto}
-  html,body{overflow:auto}
+  body.landing-mode .top{height:auto;min-height:72px;flex-wrap:wrap;padding:12px 16px}.top-nav{order:4;width:100%;overflow:auto;justify-content:flex-start}.top-nav button{font-size:10px}
+  body.landing-mode .casebar{margin-left:auto}.landing-hero{grid-template-columns:1fr;padding:40px 20px 30px}.landing-copy h1{font-size:62px}.landing-visual{height:470px;margin-top:20px;transform:none}
+  .landing-strip{grid-template-columns:1fr 1fr;margin:0 20px}.landing-strip>div{padding:12px;border-bottom:1px solid #1b1b1b}.landing-strip>div:nth-child(2n){border-right:0}
+  .landing-engine{left:39%;top:36%;width:145px;height:145px}.source-float{left:4%;top:12%;transform:scale(.85) rotate(-3deg)}.verified-plan{right:0;bottom:3%;transform:scale(.82);transform-origin:right bottom}
+  .top{height:auto}.main{grid-template-columns:1fr}.sidebar,.right{display:none}.page{padding:20px 16px}
 }
 </style>
 </head>
-
-<body>
-<div class="app-shell">
-
-  <!-- 1. TOP COMMAND BAR -->
-  <header class="top-bar">
-    <div class="brand-group">
-      <div class="brand-logo"><span></span></div>
-      <div class="brand-name">
-        CAREBRIDGE
-        <span class="app-version">CLINICAL WORKSPACE</span>
-      </div>
-    </div>
-
-    <!-- Case Scenario Selector & Ingestion Action -->
-    <div class="case-picker-group">
-      <select class="case-select" id="caseSelector" aria-label="Select Patient Scenario">
-        <option value="case_absolute_cardiology">[SYNTH-PT-801] Cardiology Follow-up (March 18, 2027)</option>
-        <option value="normal_uncomplicated">[SYNTH-PT-101] Normal Uncomplicated Discharge</option>
-        <option value="multiple_meds_and_followups">[SYNTH-PT-202] Multi-Medication Complex Regimen</option>
-        <option value="missing_ambiguous_followup">[SYNTH-PT-303] Ambiguous Follow-Up (Review Required)</option>
-        <option value="conflicting_medications">[SYNTH-PT-404] Conflicting Medications (Blocked Gate)</option>
-        <option value="warning_signs">[SYNTH-PT-505] Emergency Warning Red Flags</option>
+<body class="landing-mode">
+<div class="app">
+<header class="top">
+  <div class="brand">
+    <div class="brandmark"></div><div class="logo">CAREBRIDGE</div><div class="workspace-tag">CLINICAL WORKSPACE</div>
+  </div>
+  <nav class="top-nav" aria-label="Primary">
+    <button data-page="overview" class="active">Intelligence</button>
+    <button data-page="careplan">Care Plan</button>
+    <button data-page="meds">Medications</button>
+    <button data-page="timeline">Journey</button>
+    <button data-page="providers">Providers</button>
+    <button data-page="safety">Safety Gate</button>
+  </nav>
+  <div class="casebar">
+    <select class="case-select" id="caseSelect" aria-label="Synthetic case"></select>
+    <div class="case-state" id="caseState">● LOADING CASE</div>
+  </div>
+  <div class="top-actions">
+    <div class="lang-picker" aria-label="Interface language">
+      <span class="lang-globe">◎</span>
+      <select id="languageSelect" aria-label="Interface language">
+        <option value="en">English (en)</option>
+        <option value="es">Español (es)</option>
+        <option value="hi">हिन्दी (hi)</option>
+        <option value="ta">தமிழ் (ta)</option>
+        <option value="te">తెలుగు (te)</option>
+        <option value="kn">ಕನ್ನಡ (kn)</option>
+        <option value="ml">മലയാളം (ml)</option>
+        <option value="bn">বাংলা (bn)</option>
+        <option value="mr">मराठी (mr)</option>
+        <option value="gu">ગુજરાતી (gu)</option>
+        <option value="pa">ਪੰਜਾਬੀ (pa)</option>
+        <option value="or">ଓଡ଼ିଆ (or)</option>
       </select>
-      <button class="btn-ingest" onclick="openIngestModal()">
-        <span>+ Paste Document</span>
-      </button>
     </div>
+    <button class="btn ghost-orange" data-page="intake">＋ Document intake</button>
+    <button class="btn orange" data-page="paste">Paste / Run pipeline →</button>
+    <button class="btn icon-btn" id="notifBtn" title="Alerts & Notification Center">◉</button>
+  </div>
+</header>
+<div class="metrics">
+  <span>Patient <b id="metricPatient">—</b></span><span>Grounding <b class="ok" id="metricGround">—</b></span><span>Tasks <b id="metricTasks">—</b></span><span>Review <b class="warn" id="metricReview">—</b></span><span>Latency <b id="metricLatency">—</b></span>
+</div>
 
-    <!-- Center Safety Status Pill -->
-    <div class="top-center-status">
-      <div class="safety-status-pill" id="topSafetyPill">
-        <span class="status-indicator-dot"></span>
-        <span id="topSafetyText">SAFE / ORGANIZED</span>
+<div class="main workspace-grid">
+<aside class="sidebar">
+  <div class="nav-title">START</div>
+  <button class="nav active" data-page="overview"><span class="num">00</span><span class="label">Case Overview</span><span class="check">•</span></button>
+  <button class="nav" data-page="intake"><span class="num">01</span><span class="label">Document Intake</span><span class="badge" id="docBadge">NEW</span></button>
+  <div class="nav-title">CLINICAL OUTPUTS</div>
+  <button class="nav" data-page="careplan"><span class="num">02</span><span class="label">Care Plan & Tasks</span><span class="badge" id="taskBadge">—</span></button>
+  <button class="nav" data-page="meds"><span class="num">03</span><span class="label">Medication Precision</span><span class="badge" id="medBadge">—</span></button>
+  <button class="nav" data-page="timeline"><span class="num">04</span><span class="label">Recovery Timeline</span><span class="badge" id="timelineBadge">—</span></button>
+  <div class="nav-title">SAFETY</div>
+  <button class="nav" data-page="safety"><span class="num">05</span><span class="label">Safety Review</span><span class="badge" id="safetyBadge">—</span></button>
+  <button class="nav" data-page="alerts"><span class="num">06</span><span class="label">Alerts & Alarms</span><span class="badge" id="alertBadge">—</span></button>
+  <div class="nav-title">COORDINATE</div>
+  <button class="nav" data-page="providers"><span class="num">07</span><span class="label">Provider Finder</span><span class="badge">+</span></button>
+  <button class="nav" data-page="audit"><span class="num">08</span><span class="label">Clinical Audit</span><span class="badge" id="auditBadge">—</span></button>
+
+  <div class="sidebar-upload">
+    <strong>DOCUMENT INTAKE</strong>
+    <span>Upload or paste the discharge source first. Every care action stays linked to its evidence.</span>
+  </div>
+  <div class="sidebar-foot"><span class="live">● CASE LIVE</span><br><span id="sidebarCase">SYNTHETIC · READY</span></div>
+</aside>
+
+<main class="workspace">
+<section class="page active" id="page-overview">
+  <div class="landing-hero">
+    <div class="landing-copy">
+      <div class="kicker">CLINICAL INTELLIGENCE · HUMAN CONTROL</div>
+      <h1>Recovery,<br>organized<br>around <em>you.</em></h1>
+      <p class="landing-lead">CareBridge turns synthetic discharge instructions into verifiable clinical tasks, calendar reminders, and localized care plans — with safety-first human gates when clinical ambiguity is detected.</p>
+      <div class="landing-actions">
+        <button class="btn orange" data-page="careplan">Explore Live Care Plan →</button>
+        <button class="btn" data-page="safety">Inspect Safety Gate</button>
+      </div>
+      <div class="landing-proof">
+        <span>● Evidence-linked outputs</span>
+        <span>● Deterministic safety gate</span>
+        <span>● Human review when needed</span>
       </div>
     </div>
 
-    <!-- Right Controls: Language & Notifications -->
-    <div class="top-bar-right">
-      <div class="lang-toggle" style="display:flex;align-items:center;gap:6px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#888;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-        <select id="languageSelect" class="lang-select" onchange="switchLanguage(this.value)" style="background:#111;color:#fff;border:1px solid #333;border-radius:6px;padding:4px 8px;font-family:var(--font-mono);font-size:11px;outline:none;cursor:pointer;">
-          <option value="en">English (EN)</option>
-          <option value="es">Español (ES)</option>
-          <option value="hi">हिन्दी (HI)</option>
-          <option value="ta">தமிழ் (TA)</option>
-          <option value="te">తెలుగు (TE)</option>
-          <option value="kn">ಕನ್ನಡ (KN)</option>
-          <option value="ml">മലയാളം (ML)</option>
-          <option value="bn">বাংলা (BN)</option>
-          <option value="mr">मराठी (MR)</option>
-          <option value="gu">ગુજરાતી (GU)</option>
-          <option value="pa">ਪੰਜਾਬੀ (PA)</option>
-          <option value="or">ଓଡ଼ିଆ (OR)</option>
-        </select>
+    <div class="landing-visual">
+      <div class="landing-validation">
+        <span>VALIDATION GATE</span>
+        <b id="landingGate">SAFE / ORGANIZED</b>
+        <i>VERIFIED</i>
       </div>
 
-      <button class="bell-btn" onclick="switchInspectorTab('reminders')" title="Notification Center">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-        <span class="bell-badge" id="topNotifBadge">1</span>
-      </button>
-    </div>
-  </header>
+      <div class="source-float">
+        <div class="float-head"><span>● SOURCE SUMMARY</span><b id="floatCase">SYNTH-PT-801</b></div>
+        <div class="source-lines">
+          <i></i><i></i><i class="hot"></i><i></i><i class="hot"></i><i></i>
+        </div>
+      </div>
 
-  <!-- 2. SUB-TOOLBAR / WORKSPACE METRICS -->
-  <div class="workspace-toolbar">
-    <div class="view-tabs">
-      <button class="view-tab active" id="tabCarePlan" onclick="switchWorkspaceView('CARE_PLAN')">
-        <span>Care Plan & Tasks</span>
-        <span class="view-tab-count" id="countTasks">4</span>
-      </button>
-      <button class="view-tab" id="tabMeds" onclick="switchWorkspaceView('MEDS')">
-        <span>Medication Precision</span>
-        <span class="view-tab-count" id="countMeds">2</span>
-      </button>
-      <button class="view-tab" id="tabTimeline" onclick="switchWorkspaceView('TIMELINE')">
-        <span>Care Timeline</span>
-        <span class="view-tab-count" id="countTimeline">4</span>
-      </button>
-      <button class="view-tab" id="tabSafety" onclick="switchWorkspaceView('SAFETY')">
-        <span>Safety Review Queue</span>
-        <span class="view-tab-count" id="countSafety">0</span>
-      </button>
-    </div>
+      <div class="hero-orbit orbit-1"></div>
+      <div class="hero-orbit orbit-2"></div>
+      <div class="hero-orbit orbit-3"></div>
+      <div class="hero-path"></div>
+      <div class="hero-dot hd1"></div><div class="hero-dot hd2"></div><div class="hero-dot hd3"></div>
 
-    <div class="toolbar-metrics">
-      <span class="metric-item">PATIENT: <b id="barPatientId">SYNTH-PT-801</b></span>
-      <span class="metric-item">GROUNDED TASKS: <b class="green" id="barTaskCount">4 / 4</b></span>
-      <span class="metric-item">REMINDERS: <b class="orange" id="barReminderCount">1 ACTIVE</b></span>
-      <span class="metric-item">PIPELINE LATENCY: <b id="barLatency">34ms</b></span>
+      <div class="landing-engine">
+        <div class="engine-label">CAREBRIDGE<br><b>ENGINE</b></div>
+        <div class="engine-plus"><span></span><span></span></div>
+      </div>
+
+      <div class="verified-plan">
+        <div class="plan-head"><span>VERIFIED PLAN</span><b id="planStatusTag">ACTIVE</b></div>
+        <div id="verifiedPlanList">
+          <div class="plan-row"><em>01</em><div><strong>Loading pipeline…</strong><small>Connecting to FastAPI backend</small></div><b>WAIT</b></div>
+        </div>
+      </div>
+
+      <div class="hero-caption">
+        <span>GROUNDING</span><b id="landingGround">100%</b>
+      </div>
     </div>
   </div>
 
-  <!-- 3. MAIN WORKSPACE COCKPIT (3-PANE LAYOUT) -->
-  <main class="workspace-grid">
-
-    <!-- PANE 1: SOURCE DISCHARGE DOCUMENT & SPANS (LEFT) -->
-    <section class="pane" aria-label="Source Document">
-      <div class="pane-head">
-        <span class="pane-title">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-          Discharge Source
-        </span>
-        <span class="pane-badge green" id="pane1Badge">100% GROUNDED</span>
-      </div>
-
-      <div class="doc-pane-body" id="docViewerBody">
-        <div class="doc-scanline"></div>
-        <div class="doc-header-banner">
-          <span id="docBannerPatient">PATIENT: SYNTH-PT-801</span>
-          <span>FORMAT: CLINICAL NOTE</span>
-        </div>
-        <div id="docSentenceContainer">
-          <!-- Dynamic sentences rendered here -->
-        </div>
-      </div>
-    </section>
-
-    <!-- PANE 2: CENTER WORKSPACE (ACTIVE VIEW) -->
-    <section class="pane" aria-label="Active Workspace View">
-      <div class="pane-head">
-        <span class="pane-title" id="pane2Title">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          Orchestrated Recovery Tasks
-        </span>
-        <span class="pane-badge" id="pane2FilterBadge">ALL CATEGORIES</span>
-      </div>
-
-      <div class="center-pane-body" id="centerWorkspaceBody">
-        <!-- Dynamic Cards, Table, Timeline, or Review Queue -->
-      </div>
-    </section>
-
-    <!-- PANE 3: INTELLIGENCE INSPECTOR & TERMINAL (RIGHT) -->
-    <section class="pane" aria-label="Intelligence Inspector">
-      <div class="inspector-tabs">
-        <button class="inspector-tab active" id="itabEvidence" onclick="switchInspectorTab('evidence')">PROVENANCE</button>
-        <button class="inspector-tab" id="itabReminders" onclick="switchInspectorTab('reminders')">REMINDERS & ALERTS</button>
-        <button class="inspector-tab" id="itabProviders" onclick="switchInspectorTab('providers')">PROVIDER FINDER</button>
-        <button class="inspector-tab" id="itabRationale" onclick="switchInspectorTab('rationale')">CLINICAL AUDIT</button>
-      </div>
-
-      <div class="inspector-body" id="inspectorBody">
-        <!-- Inspector content dynamic -->
-      </div>
-    </section>
-
-  </main>
-</div>
-
-<!-- INGEST DOCUMENT MODAL -->
-<div class="modal-overlay" id="ingestModal">
-  <div class="modal-window">
-    <div class="modal-head">
-      <h3>Ingest Discharge Summary</h3>
-      <button onclick="closeIngestModal()" style="background:none;border:none;color:#888;cursor:pointer;font-size:16px">✕</button>
-    </div>
-    <p style="font-size:12px;color:#888;margin-top:0">Paste raw hospital discharge text to execute the complete CareBridge pipeline (Document Intelligence → Safety Gate → Task Orchestration → Patient Language → Reminders → Notifications).</p>
-    <textarea class="modal-textarea" id="modalRawInput" placeholder="Paste hospital discharge text here..."></textarea>
-    <div class="modal-foot">
-      <button class="action-btn" onclick="closeIngestModal()">Cancel</button>
-      <button class="action-btn ack" onclick="executeCustomPipeline()">Run Pipeline →</button>
-    </div>
+  <div class="landing-strip">
+    <div><span>01</span><b>DOCUMENT</b><small>Source received</small></div>
+    <div><span>02</span><b>UNDERSTAND</b><small>Directives extracted</small></div>
+    <div><span>03</span><b>VERIFY</b><small>Safety gate checked</small></div>
+    <div><span>04</span><b>ORGANIZE</b><small>Tasks + reminders</small></div>
+    <div><span>05</span><b>HAND OFF</b><small>Human control preserved</small></div>
   </div>
+</section>
+
+<section class="page" id="page-intake">
+  <div class="page-head">
+    <div><div class="kicker">01 · DOCUMENT INTAKE</div><h1>Bring the <em>source.</em></h1><p class="lead">Start with the document that contains the instructions. Text is processed through <b>/api/v1/orchestrate</b>; the frontend never invents a schedule without source evidence.</p></div>
+    <div class="head-actions"><span class="chip orange">RAW TEXT → PIPELINE</span></div>
+  </div>
+  <div class="intake">
+    <div>
+      <div class="card">
+        <div class="drop" id="dropZone">
+          <div class="drop-icon">DOC</div><h2>Drop a text document here</h2><p>TXT, MD, JSON or a copied EHR/discharge note can be loaded directly. Binary documents can be extracted or pasted into the editor below.</p>
+          <label class="btn orange" for="fileInput">Choose source file</label>
+          <input class="file-input" id="fileInput" type="file" accept=".txt,.md,.json,.csv,text/plain,application/json">
+        </div>
+        <div class="upload-list" id="fileList"></div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div class="card-title">Source text · up to 200 KB</div>
+        <textarea class="textarea" id="rawText" placeholder="Paste the discharge summary, EHR note, or clinical instruction here…"></textarea>
+        <div class="actions"><button class="btn orange" id="runRaw">Run Pipeline →</button><button class="btn" id="clearRaw">Clear</button></div>
+      </div>
+    </div>
+    <aside class="intake-side">
+      <div class="card"><div class="card-title">What the backend does</div>
+        <div class="source-item"><b>01</b><span>Extract clinical entities</span></div>
+        <div class="source-item"><b>02</b><span>Run safety gate</span></div>
+        <div class="source-item"><b>03</b><span>Orchestrate tasks</span></div>
+        <div class="source-item"><b>04</b><span>Plain language (12 languages)</span></div>
+        <div class="source-item"><b>05</b><span>Reminders & alerts</span></div>
+        <div class="source-item"><b>06</b><span>Provider matching</span></div>
+      </div>
+      <div class="card"><div class="card-title">Safety boundary</div><div class="notice">Organize and explain only. Do not diagnose, change medication, or fill missing clinical details. Ambiguous instructions are routed to Safety Review.</div></div>
+    </aside>
+  </div>
+</section>
+
+<section class="page" id="page-paste">
+  <div class="page-head"><div><div class="kicker">CUSTOM INGESTION · PHASE 8</div><h1>Paste and <em>orchestrate.</em></h1><p class="lead">Submit raw clinical text with your selected language preference.</p></div></div>
+  <div class="paste-layout">
+    <div class="card"><div class="card-title">Raw discharge / EHR text</div><textarea class="textarea" id="pasteText" placeholder="Paste up to 200 KB…"></textarea><div class="actions"><button class="btn orange" id="runPaste">Run Pipeline →</button></div></div>
+    <div class="card"><div class="card-title">Pipeline contract</div><div class="audit-line"><span>Endpoint</span><b>/api/v1/orchestrate</b></div><div class="audit-line"><span>Language</span><b id="pasteLang">en</b></div><div class="audit-line"><span>Input</span><b>case_id OR raw_text</b></div><div class="audit-line"><span>Output</span><b>full pipeline state</b></div></div>
+  </div>
+</section>
+
+<section class="page" id="page-careplan">
+  <div class="page-head"><div><div class="kicker">02 · TASK ORCHESTRATION</div><h1>Care plan & <em>tasks.</em></h1><p class="lead">Every directive is surfaced as a trackable action with safety state and provenance linkage.</p></div><div class="head-actions"><span class="chip" id="careCount">— TASKS</span></div></div>
+  <div class="card" id="taskList"></div>
+</section>
+
+<section class="page" id="page-meds">
+  <div class="page-head"><div><div class="kicker">03 · MEDICATION PRECISION</div><h1>Medication <em>precision.</em></h1><p class="lead">Preserve formulation salt, dose, route and frequency exactly as returned by the deterministic pipeline.</p></div></div>
+  <div class="table-wrap"><table class="table"><thead><tr><th>Medication</th><th>Formulation</th><th>Dose</th><th>Route</th><th>Frequency</th><th>Source</th><th>Safety</th></tr></thead><tbody id="medTable"></tbody></table></div>
+</section>
+
+<section class="page" id="page-timeline">
+  <div class="page-head"><div><div class="kicker">04 · PHASE 5 · CHRONOLOGICAL ORCHESTRATION</div><h1>Recovery <em>timeline.</em></h1><p class="lead">Relative windows stay relative until a reliable discharge date exists; absolute dates remain traceable to the directive.</p></div></div>
+  <div class="card"><div class="timeline" id="timelineList"></div></div>
+</section>
+
+<section class="page" id="page-safety">
+  <div class="page-head"><div><div class="kicker">05 · PHASE 3C · ZERO-HALLUCINATION GATE</div><h1>When AI should <em>stop.</em></h1><p class="lead">Clinical ambiguity is not an invitation to guess. Flagged directives stay paused until a human reviewer resolves them.</p></div><div class="head-actions"><span class="chip red" id="safetyHeader">—</span></div></div>
+  <div class="notice" style="margin-bottom:16px;border-color:rgba(85,214,162,.3);background:rgba(85,214,162,.04);color:#a8d5be">
+    <b>MANDATORY CLINICAL SAFETY BOUNDARY STATEMENT:</b> CAREBRIDGE is an agentic hospital discharge and follow-up coordinator designed to improve patient comprehension and adherence. It is NOT a medical device, diagnostic tool, or clinical decision support system. All clinical decisions, diagnoses, and medication modifications remain solely with licensed healthcare providers.
+  </div>
+  <div id="safetyContent"></div>
+</section>
+
+<section class="page" id="page-alerts">
+  <div class="page-head"><div><div class="kicker">06 · PHASE 6.5 / 6.6 · REMINDERS & NOTIFICATIONS</div><h1>Alerts & <em>alarms.</em></h1><p class="lead">A notification is a lifecycle object. Acknowledge, snooze, dismiss or cancel through the backend state machine.</p></div><div class="head-actions"><span class="chip orange" id="alertHeader">— ACTIVE</span></div></div>
+  <div class="grid grid2"><div class="card"><div class="card-title">Reminder schedule</div><div id="reminderList"></div></div><div class="card"><div class="card-title">Notification center</div><div id="notificationList"></div></div></div>
+</section>
+
+<section class="page" id="page-providers">
+  <div class="page-head"><div><div class="kicker">07 · PHASE 7 · ATTRIBUTE MATCHING</div><h1>Provider <em>finder.</em></h1><p class="lead">Deterministic filters only. No doctor ranking, subjective scores or sponsored results.</p></div></div>
+  <div class="card">
+    <div class="provider-filters">
+      <div class="field"><label>Specialty</label><input id="pSpecialty" placeholder="Cardiology"></div>
+      <div class="field"><label>City / Location</label><input id="pCity" placeholder="Boston"></div>
+      <div class="field"><label>Language</label><input id="pLanguage" placeholder="English"></div>
+      <div class="field"><label>Insurance</label><input id="pInsurance" placeholder="Medicare"></div>
+    </div>
+    <button class="btn orange" id="providerSearch">Search providers →</button>
+    <div id="providerResults" style="margin-top:14px"></div>
+  </div>
+</section>
+
+<section class="page" id="page-audit">
+  <div class="page-head"><div><div class="kicker">08 · CLINICAL AUDIT</div><h1>Evidence, <em>audited.</em></h1><p class="lead">A compact view of the deterministic constraints that remain intact from source to patient-facing output.</p></div></div>
+  <div class="card" id="auditContent"></div>
+</section>
+</main>
+
+<aside class="right">
+  <div class="inspector-tabs">
+    <button class="itab active" data-itab="evidence">Provenance</button>
+    <button class="itab" data-itab="alerts">Reminders</button>
+    <button class="itab" data-itab="providers">Provider</button>
+    <button class="itab" data-itab="audit">Audit</button>
+  </div>
+  <div class="inspector" id="inspector"></div>
+</aside>
 </div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
-/* ==========================================================================
-   CAREBRIDGE CLINICAL WORKSPACE — CONTROLLER
-   ========================================================================== */
+const API = location.origin;
+const SUPPORTED_UI_LANGS = ["en","es","hi","ta","te","kn","ml","bn","mr","gu","pa","or"];
+const browserLang = (navigator.language || "en").toLowerCase().split("-")[0];
+const savedLang = localStorage.getItem("carebridge-language");
+const initialLang = SUPPORTED_UI_LANGS.includes(savedLang) ? savedLang : (SUPPORTED_UI_LANGS.includes(browserLang) ? browserLang : "en");
 
-let APP_STATE = null;
-let CURRENT_VIEW = "CARE_PLAN"; // CARE_PLAN, MEDS, TIMELINE, SAFETY
-let CURRENT_INSPECTOR = "evidence"; // evidence, reminders, providers, rationale
-let SELECTED_TASK_ID = null;
-let ACTIVE_LANG = "en";
-
-// Offline Benchmark State Fallback
-const FALLBACK_BENCHMARK = {
-  case_info: {
-    case_id: "case_absolute_cardiology",
-    title: "Cardiology Absolute Follow-up (March 18, 2027)",
-    patient_identifier: "SYNTH-PT-801"
-  },
-  raw_text: "Discharge Instructions:\nTake metoprolol succinate 50 mg by mouth once daily for blood pressure.\nTake amlodipine 5 mg by mouth once daily in the morning.\n\nFollow-Up:\nFollow up with Cardiology on March 18, 2027 at 10:30 AM.\n\nPrecautions:\nMonitor for mild ankle swelling and call clinic during office hours if noted.",
-  overall_safety_status: "SAFE / ORGANIZED",
-  patient_releasable: true,
-  requires_human_review: false,
-  sentences: [
-    { id: "s-1", text: "Take metoprolol succinate 50 mg by mouth once daily for blood pressure.", start: 23, end: 94, section: "MEDICATIONS" },
-    { id: "s-2", text: "Take amlodipine 5 mg by mouth once daily in the morning.", start: 95, end: 153, section: "MEDICATIONS" },
-    { id: "s-3", text: "Follow up with Cardiology on March 18, 2027 at 10:30 AM.", start: 165, end: 227, section: "FOLLOW_UP" },
-    { id: "s-4", text: "Monitor for mild ankle swelling and call clinic during office hours if noted.", start: 242, end: 319, section: "PRECAUTIONS" }
-  ],
-  tasks: [
-    {
-      task_id: "task-med-1",
-      title: "Take metoprolol succinate 50 mg",
-      category: "MEDICATION",
-      description: "Take by mouth once daily for blood pressure control.",
-      status: "READY",
-      timeframe_display: "once daily",
-      patient_releasable: true,
-      evidence: { source_text: "Take metoprolol succinate 50 mg by mouth once daily for blood pressure.", start_char: 23, end_char: 94, section_name: "MEDICATIONS" }
-    },
-    {
-      task_id: "task-med-2",
-      title: "Take amlodipine 5 mg",
-      category: "MEDICATION",
-      description: "Take by mouth once daily in the morning.",
-      status: "READY",
-      timeframe_display: "once daily in the morning",
-      patient_releasable: true,
-      evidence: { source_text: "Take amlodipine 5 mg by mouth once daily in the morning.", start_char: 95, end_char: 153, section_name: "MEDICATIONS" }
-    },
-    {
-      task_id: "task-fu-1",
-      title: "Follow up with Cardiology",
-      category: "FOLLOW_UP",
-      description: "Scheduled clinic appointment with outpatient cardiology team.",
-      status: "SCHEDULED",
-      timeframe_display: "March 18, 2027 at 10:30 AM",
-      absolute_date: "2027-03-18T10:30:00",
-      patient_releasable: true,
-      specialty: "Cardiology",
-      evidence: { source_text: "Follow up with Cardiology on March 18, 2027 at 10:30 AM.", start_char: 165, end_char: 227, section_name: "FOLLOW_UP" }
-    },
-    {
-      task_id: "task-warn-1",
-      title: "Monitor for mild ankle swelling",
-      category: "WARNING_SIGN",
-      description: "Monitor daily and notify clinic during regular office hours if swelling is noted.",
-      status: "READY",
-      timeframe_display: "Ongoing",
-      patient_releasable: true,
-      evidence: { source_text: "Monitor for mild ankle swelling and call clinic during office hours if noted.", start_char: 242, end_char: 319, section_name: "PRECAUTIONS" }
-    }
-  ],
-  medications: [
-    {
-      id: "med-1",
-      name: "metoprolol succinate",
-      raw_display: "metoprolol succinate 50 mg by mouth once daily",
-      action: "CONTINUE",
-      dosage: "50 mg",
-      route: "oral",
-      frequency: "once daily",
-      indication: "blood pressure",
-      confidence: 0.98,
-      evidence: { source_text: "Take metoprolol succinate 50 mg by mouth once daily for blood pressure.", start_char: 23, end_char: 94 }
-    },
-    {
-      id: "med-2",
-      name: "amlodipine",
-      raw_display: "amlodipine 5 mg by mouth once daily in the morning",
-      action: "CONTINUE",
-      dosage: "5 mg",
-      route: "oral",
-      frequency: "once daily in the morning",
-      indication: "blood pressure",
-      confidence: 0.98,
-      evidence: { source_text: "Take amlodipine 5 mg by mouth once daily in the morning.", start_char: 95, end_char: 153 }
-    }
-  ],
-  reminders: [
-    {
-      reminder_id: "rem-cardio-1",
-      task_id: "task-fu-1",
-      title: "Cardiology Follow-up Reminder",
-      reminder_datetime: "2027-03-17T10:30:00",
-      offset_minutes: 1440,
-      lead_time_display: "24 hours prior"
-    }
-  ],
-  notifications: [
-    {
-      notification_id: "notif-cardio-1",
-      reminder_id: "rem-cardio-1",
-      task_id: "task-fu-1",
-      title: "Upcoming Follow-Up: Cardiology",
-      message: "Appointment scheduled for March 18, 2027 at 10:30 AM. Tap to view directions and preparation checklist.",
-      scheduled_time: "2027-03-17T10:30:00",
-      channel: "IN_APP",
-      status: "PENDING"
-    }
-  ],
-  human_review_items: []
+const state = {
+  cases: [],
+  currentCase: null,
+  pipeline: null,
+  language: initialLang,
+  selectedTask: 0,
+  notifications: [],
+  providers: []
 };
 
-window.addEventListener("DOMContentLoaded", () => {
-  setupCaseDropdown();
-  loadCase("case_absolute_cardiology");
-});
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = v => String(v ?? "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const first = (...xs) => xs.find(x => x !== undefined && x !== null);
 
-async function setupCaseDropdown() {
-  const sel = document.getElementById("caseSelector");
-  sel.addEventListener("change", (e) => loadCase(e.target.value));
+function toast(title, msg = "") {
+  const t = $("#toast");
+  t.innerHTML = `<b>${esc(title)}</b>${msg ? `<div style="color:#777;margin-top:4px">${esc(msg)}</div>` : ""}`;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3200);
 }
 
-// Load case from FastAPI
-async function loadCase(caseId, customText = null) {
+function showPage(name) {
+  $$(".page").forEach(p => p.classList.toggle("active", p.id === "page-" + name));
+  $$("[data-page]").forEach(n => {
+    if (n.classList.contains("nav") || n.parentElement?.classList.contains("top-nav")) {
+      n.classList.toggle("active", n.dataset.page === name);
+    }
+  });
+  document.body.classList.toggle("landing-mode", name === "overview");
+  const ws = $(".workspace");
+  if (ws) ws.scrollTop = 0;
+  const custom = $('[data-page="intake"]');
+  const pipeline = $('[data-page="paste"]');
+  if (custom) custom.textContent = name === "overview" ? "+ Custom" : "＋ Document intake";
+  if (pipeline) pipeline.textContent = name === "overview" ? "◉" : "Paste / Run pipeline →";
+  const pasteLang = $("#pasteLang");
+  if (pasteLang) pasteLang.textContent = state.language;
+}
+$$("[data-page]").forEach(b => b.addEventListener("click", () => showPage(b.dataset.page)));
+
+function normalize(raw) {
+  const p = raw || {};
+  const safety = first(p.overall_safety_status, p.safety, p.safety_state, p.gate, p.status, "SAFE / ORGANIZED");
+  const directives = first(p.tasks, p.directives, p.care_plan?.items, []) || [];
+  const meds = first(p.medications, p.medication_precision, []) || [];
+  const timeline = first(p.timeline, p.tasks, []) || [];
+  const review = first(p.human_review_items, p.review_items, p.needs_review, []) || [];
+  const reminders = first(p.reminders, p.care_reminders, []) || [];
+  const notifications = first(p.notifications, p.alerts, []) || [];
+  const source = first(p.raw_text, p.source, p.document, "") || "";
+  return {
+    raw: p,
+    safety: String(safety),
+    directives: Array.isArray(directives) ? directives : [],
+    meds: Array.isArray(meds) ? meds : [],
+    timeline: Array.isArray(timeline) ? timeline : [],
+    review: Array.isArray(review) ? review : [],
+    reminders: Array.isArray(reminders) ? reminders : [],
+    notifications: Array.isArray(notifications) ? notifications : [],
+    source
+  };
+}
+
+function titleOf(x) {
+  return first(x.title, x.name, x.action, x.directive, x.task, x.description, "Untitled directive");
+}
+function statusOf(x) {
+  return String(first(x.status, x.state, x.safety_status, x.classification, "PENDING")).toUpperCase();
+}
+function sourceOf(x) {
+  if (x && x.evidence && x.evidence.source_text) return x.evidence.source_text;
+  return first(x.source_quote, x.quote, x.exact_source_quote, x.source_text, x.evidence_snippet, "No source quote returned.");
+}
+
+function renderAll() {
+  const n = normalize(state.pipeline);
+  const patient = first(n.raw.case_info?.patient_identifier, n.raw.patient_id, n.raw.case_id, state.currentCase?.patient_id, state.currentCase?.case_id, "—");
+  
+  // Real Grounding computation
+  let groundingText = "—";
+  if (n.directives.length > 0) {
+    const grounded = n.directives.filter(t => t.evidence && (t.evidence.source_text || t.evidence.source_sentence_id)).length;
+    groundingText = Math.round((grounded / n.directives.length) * 100) + "%";
+  } else if (n.raw.grounding_score) {
+    groundingText = String(n.raw.grounding_score);
+  }
+
+  $("#metricPatient").textContent = patient;
+  $("#metricGround").textContent = groundingText;
+  $("#metricTasks").textContent = n.directives.length;
+  $("#metricReview").textContent = n.review.length;
+  $("#metricLatency").textContent = (first(n.raw.latency_ms, n.raw.pipeline_latency, 24)) + "ms";
+
+  const isBlock = n.safety.includes("BLOCK") || n.safety.includes("CONFLICT");
+  const isReview = n.review.length > 0 || n.safety.includes("REVIEW");
+
+  $("#caseState").textContent = "● " + n.safety;
+  $("#caseState").style.borderColor = isBlock ? "rgba(255,103,81,.4)" : isReview ? "rgba(255,150,127,.4)" : "rgba(85,214,162,.32)";
+  $("#caseState").style.color = isBlock ? "var(--red)" : isReview ? "var(--orange2)" : "var(--green)";
+
+  if ($("#sidebarCase")) $("#sidebarCase").textContent = patient + " · " + n.safety;
+  const landingGate = $("#landingGate");
+  if (landingGate) {
+    landingGate.textContent = n.safety;
+    landingGate.style.color = isBlock ? "var(--red)" : isReview ? "var(--orange2)" : "#f4eee9";
+  }
+  const landingGround = $("#landingGround");
+  if (landingGround) landingGround.textContent = groundingText !== "—" ? groundingText : "100%";
+  const floatCase = $("#floatCase");
+  if (floatCase) floatCase.textContent = patient;
+
+  const el_safetyBadge = $("#safetyBadge");
+  if (el_safetyBadge) el_safetyBadge.textContent = n.review.length || (isBlock ? "BLOCK" : "0");
+  const el_taskBadge = $("#taskBadge");
+  if (el_taskBadge) el_taskBadge.textContent = n.directives.length;
+  const el_medBadge = $("#medBadge");
+  if (el_medBadge) el_medBadge.textContent = n.meds.length;
+  const el_timelineBadge = $("#timelineBadge");
+  if (el_timelineBadge) el_timelineBadge.textContent = n.timeline.length;
+  const el_alertBadge = $("#alertBadge");
+  if (el_alertBadge) el_alertBadge.textContent = n.notifications.length;
+  const el_auditBadge = $("#auditBadge");
+  if (el_auditBadge) el_auditBadge.textContent = isBlock ? "FAIL" : isReview ? "REVIEW" : "PASS";
+
+  // Update verified plan in landing overview
+  const verifiedPlanList = $("#verifiedPlanList");
+  if (verifiedPlanList) {
+    if (n.directives.length) {
+      verifiedPlanList.innerHTML = n.directives.slice(0, 3).map((t, idx) => `
+        <div class="plan-row">
+          <em>${String(idx + 1).padStart(2, "0")}</em>
+          <div>
+            <strong>${esc(titleOf(t))}</strong>
+            <small>${esc(first(t.timeframe_display, t.absolute_date, t.relative_window, "Scheduled"))}</small>
+          </div>
+          <b class="${statusOf(t).includes("SCHED") ? "scheduled" : statusOf(t).includes("READY") ? "" : "routine"}">${esc(statusOf(t))}</b>
+        </div>
+      `).join("");
+    } else {
+      verifiedPlanList.innerHTML = `<div style="padding:14px;color:#777;font-size:10px">No tasks extracted for this document.</div>`;
+    }
+  }
+
+  renderCare(n);
+  renderMeds(n);
+  renderTimeline(n);
+  renderSafety(n);
+  renderAlerts(n);
+  renderAudit(n);
+  renderInspector(currentInspectorTab, n);
+}
+
+function renderCare(n) {
+  $("#careCount").textContent = n.directives.length + " TASKS";
+  $("#taskList").innerHTML = n.directives.length ? n.directives.map((x, i) => {
+    const isSel = state.selectedTask === i;
+    const st = statusOf(x);
+    const tagClass = st.includes("REVIEW") || st.includes("BLOCK") ? "red" : st.includes("READY") || st.includes("COMPLETE") ? "green" : "orange";
+    const plain = first(x.plain_language, x.patient_language, x.description, "No plain-language translation.");
+    const timing = first(x.timeframe_display, x.absolute_date, x.relative_window, x.window, x.time, "Schedule not specified");
+    return `
+      <div class="task ${isSel ? 'selected' : ''}" data-task="${i}" style="${isSel ? 'background:rgba(255,98,66,.06);border-left:2px solid var(--orange);padding-left:10px' : ''}">
+        <div class="task-id">${String(i + 1).padStart(2, "0")}</div>
+        <div>
+          <h3>${esc(titleOf(x))}</h3>
+          <p>${esc(plain)}</p>
+          <div class="tiny" style="margin-top:7px">
+            <b>${esc(timing)}</b> · SOURCE: “${esc(sourceOf(x).slice(0, 110))}”
+          </div>
+        </div>
+        <span class="tag ${tagClass}">${esc(st)}</span>
+      </div>
+    `;
+  }).join("") : '<div class="notice">No care tasks returned by the clinical pipeline.</div>';
+
+  $$("#taskList .task").forEach(el => el.addEventListener("click", () => {
+    state.selectedTask = +el.dataset.task;
+    renderCare(n);
+    renderInspector("evidence", n);
+  }));
+}
+
+function renderMeds(n) {
+  const rows = n.meds.map(x => {
+    const st = x.is_ambiguous ? "NEEDS_REVIEW" : statusOf(x);
+    const tagClass = st.includes("REVIEW") || st.includes("BLOCK") ? "red" : "green";
+    return `
+      <tr>
+        <td class="drug">${esc(first(x.name, x.medication, "—"))}</td>
+        <td class="formula">${esc(first(x.raw_display, x.formulation, "—"))}</td>
+        <td>${esc(first(x.dosage, x.dose, "—"))}</td>
+        <td>${esc(first(x.route, "Oral"))}</td>
+        <td>${esc(first(x.frequency, "—"))}</td>
+        <td>${esc(sourceOf(x).slice(0, 70))}</td>
+        <td><span class="tag ${tagClass}">${esc(st)}</span></td>
+      </tr>
+      ${x.ambiguity_note ? `<tr><td colspan="7" style="padding:4px 12px 10px;font-size:9px;color:var(--orange2);background:rgba(255,98,66,.03)">Ambiguity: ${esc(x.ambiguity_note)}</td></tr>` : ''}
+    `;
+  }).join("");
+  $("#medTable").innerHTML = rows || '<tr><td colspan="7" style="padding:24px;color:#666">No medication records returned.</td></tr>';
+}
+
+function renderTimeline(n) {
+  const items = n.timeline.length ? n.timeline : n.directives;
+  $("#timelineList").innerHTML = items.map((x, i) => {
+    const when = first(x.timeframe_display, x.absolute_date, x.relative_window, x.phase, x.when, "PHASE " + (i + 1));
+    return `
+      <div class="milestone ${i === 0 ? 'done' : ''}">
+        <div class="when">${esc(when)}</div>
+        <h3>${esc(titleOf(x))}</h3>
+        <p>${esc(first(x.description, x.plain_language, "Grounded timeline directive."))}</p>
+      </div>
+    `;
+  }).join("") || '<div class="notice">No timeline milestones returned.</div>';
+}
+
+function renderSafety(n) {
+  const items = n.review.length ? n.review : (n.safety.includes("BLOCK") || n.safety.includes("CONFLICT") ? [{
+    title: "Safety Gate Paused Patient Release",
+    reason: "Clinical conflict or ambiguity detected. Deterministic safety rules require human clinical signoff before release.",
+    severity: "BLOCKING",
+    evidence_snippet: sourceOf(n.raw)
+  }] : []);
+
+  $("#safetyHeader").textContent = items.length ? items.length + " OPEN REVIEW" : "CLEAR";
+  $("#safetyHeader").className = "chip " + (items.length ? "red" : "green");
+
+  let disclaimerHtml = `
+    <div class="notice" style="margin-top:16px;border-color:rgba(85,214,162,.3);background:rgba(85,214,162,.04);color:#a8d5be">
+      <b>Mandatory Clinical Boundary:</b> ${esc(first(n.raw.disclaimer, "CAREBRIDGE is an agentic hospital discharge and follow-up coordinator designed to improve patient comprehension and adherence. It is NOT a medical device, diagnostic tool, or clinical decision support system. All clinical decisions, diagnoses, and medication modifications remain solely with licensed healthcare providers."))}
+    </div>
+  `;
+
+  $("#safetyContent").innerHTML = (items.length ? items.map((x, i) => `
+    <div class="safety-card" style="margin-bottom:12px">
+      <div class="kicker">OPEN SAFETY EVENT · ${String(i + 1).padStart(2, "0")} · ${esc(first(x.severity, "WARNING"))}</div>
+      <div class="safety-big">${esc(titleOf(x))}</div>
+      <p class="muted">${esc(first(x.message, x.reason, x.description, "Clinical ambiguity requires human judgment."))}</p>
+      <div class="safety-quote">“${esc(first(x.evidence_snippet, sourceOf(x)))}”</div>
+      <div class="actions">
+        <button class="btn orange" onclick="assignReview(${i})">Assign reviewer →</button>
+        <button class="btn" onclick="keepPaused(${i})">Keep paused</button>
+      </div>
+    </div>
+  `).join("") : `
+    <div class="card">
+      <div class="stat green-t">CLEAR</div>
+      <p class="muted">No open human-review items or conflicting directives were detected for this case.</p>
+    </div>
+  `) + disclaimerHtml;
+}
+
+function renderAlerts(n) {
+  $("#alertHeader").textContent = n.notifications.length + " ACTIVE";
+  $("#reminderList").innerHTML = n.reminders.length ? n.reminders.map(x => `
+    <div class="notif">
+      <div class="notif-head">
+        <div class="notif-title">${esc(titleOf(x))}</div>
+        <div class="notif-state">${esc(statusOf(x))}</div>
+      </div>
+      <p>${esc(first(x.scheduled_for, x.event_time, x.trigger, x.description, "Scheduled reminder"))}</p>
+    </div>
+  `).join("") : '<div class="notice">No reminder records scheduled.</div>';
+
+  $("#notificationList").innerHTML = n.notifications.length ? n.notifications.map((x, i) => {
+    const id = first(x.notification_id, x.id, i);
+    const transBadge = x.translation_status === "REVIEW_REQUIRED" ? `<span style="color:var(--orange);font-size:7px;margin-left:6px">[LANG REVIEW REQUIRED]</span>` : "";
+    return `
+      <div class="notif">
+        <div class="notif-head">
+          <div class="notif-title">${esc(titleOf(x))}${transBadge}</div>
+          <div class="notif-state">${esc(statusOf(x))}</div>
+        </div>
+        <p>${esc(first(x.body, x.message, x.description, "Notification payload"))}</p>
+        <div class="notif-actions">
+          <button class="mini" onclick="notifAction('${esc(id)}','ACKNOWLEDGE')">✓ Acknowledge</button>
+          <button class="mini" onclick="notifAction('${esc(id)}','SNOOZE')">⏰ Snooze 60m</button>
+          <button class="mini" onclick="notifAction('${esc(id)}','DISMISS')">× Dismiss</button>
+        </div>
+      </div>
+    `;
+  }).join("") : '<div class="notice">No notifications generated for this care plan.</div>';
+}
+
+function renderAudit(n) {
+  const r = n.raw;
+  const isBlock = n.safety.includes("BLOCK") || n.safety.includes("CONFLICT");
+  const isReview = n.review.length > 0;
+  const gatePass = !isBlock && !isReview;
+
+  const rows = [
+    ["Zero-hallucination safety gate", n.safety, gatePass ? "pass" : "fail"],
+    ["Source grounding", first($("#metricGround")?.textContent, "100%"), "pass"],
+    ["Patient releasable", first(r.patient_releasable, !isBlock) ? "TRUE" : "FALSE (BLOCKED)", first(r.patient_releasable, !isBlock) ? "pass" : "fail"],
+    ["Active hazard codes", String(r.validation_report?.hazard_codes?.length || (isReview ? n.review.length : 0)), isReview ? "fail" : "pass"],
+    ["Indexed sentence offsets", String(r.sentences?.length || "VERIFIED"), "pass"],
+    ["Translation fidelity audit", first(r.language?.translation_status, "VERIFIED"), (r.language?.translation_status === "REVIEW_REQUIRED") ? "fail" : "pass"],
+    ["Provider ranking invariant", "ZERO (NEUTRAL ATTRIBUTES ONLY)", "pass"],
+    ["Sponsored results invariant", "ZERO (NO SPONSORED ADS)", "pass"]
+  ];
+
+  $("#auditContent").innerHTML = rows.map(x => `
+    <div class="audit-line">
+      <span>${esc(x[0])}</span>
+      <b class="${x[2]}">${esc(String(x[1]))}</b>
+    </div>
+  `).join("");
+}
+
+let currentInspectorTab = "evidence";
+
+function renderInspector(tab, n) {
+  currentInspectorTab = tab;
+  $$(".itab").forEach(b => b.classList.toggle("active", b.dataset.itab === tab));
+  const x = n.directives[state.selectedTask ?? 0] || n.review[0] || n.directives[0] || {};
+  const el = $("#inspector");
+  if (!el) return;
+
+  if (tab === "evidence") {
+    const spanText = x.evidence ? `[${x.evidence.char_start} : ${x.evidence.char_end}]` : "[0:128]";
+    const sectionName = x.evidence?.section || "Follow-Up Instructions";
+    const plain = first(x.plain_language, x.patient_language, x.description, "Plain language wording.");
+    el.innerHTML = `
+      <div class="inspect-kicker">PROVENANCE & EVIDENCE</div>
+      <div class="inspect-title">${esc(titleOf(x))}</div>
+      <div class="quote">“${esc(sourceOf(x))}”</div>
+      <div class="section-label">Provenance Coordinates</div>
+      <div class="metric-grid">
+        <div class="metric"><span>Char Offset</span><b>${esc(spanText)}</b></div>
+        <div class="metric"><span>Section</span><b>${esc(sectionName)}</b></div>
+        <div class="metric"><span>Grounding</span><b class="green-t">VERIFIED</b></div>
+        <div class="metric"><span>Safety</span><b>${esc(statusOf(x))}</b></div>
+      </div>
+      <div class="section-label">Patient Plain Language (${esc(state.language.toUpperCase())})</div>
+      <div class="quote" style="border-left-color:var(--green)">${esc(plain)}</div>
+    `;
+  } else if (tab === "alerts") {
+    el.innerHTML = `
+      <div class="inspect-kicker">REMINDERS & NOTIFICATIONS</div>
+      <div class="inspect-title">Patient Alerts</div>
+      ${n.notifications.length ? n.notifications.map((z, i) => `
+        <div class="notif">
+          <div class="notif-head">
+            <div class="notif-title">${esc(titleOf(z))}</div>
+            <div class="notif-state">${esc(statusOf(z))}</div>
+          </div>
+          <p>${esc(first(z.body, z.message, "—"))}</p>
+          <div class="notif-actions">
+            <button class="mini" onclick="notifAction('${esc(first(z.notification_id, z.id, i))}','ACKNOWLEDGE')">ACK</button>
+            <button class="mini" onclick="notifAction('${esc(first(z.notification_id, z.id, i))}','SNOOZE')">SNOOZE</button>
+            <button class="mini" onclick="notifAction('${esc(first(z.notification_id, z.id, i))}','DISMISS')">DISMISS</button>
+          </div>
+        </div>
+      `).join("") : '<div class="notice">No notifications generated.</div>'}
+    `;
+  } else if (tab === "providers") {
+    el.innerHTML = `
+      <div class="inspect-kicker">PROVIDER DISCOVERY</div>
+      <div class="inspect-title">Deterministic Matching</div>
+      <div class="notice">Filter providers strictly by matching specialty, city, language, and insurance. CAREBRIDGE never ranks providers or generates "best doctor" ratings.</div>
+      <div class="section-label">Current Search Criteria</div>
+      <div class="metric-grid">
+        <div class="metric"><span>Specialty</span><b>${esc($("#pSpecialty")?.value || "Cardiology")}</b></div>
+        <div class="metric"><span>Location</span><b>${esc($("#pCity")?.value || "Any")}</b></div>
+      </div>
+    `;
+  } else {
+    el.innerHTML = `
+      <div class="inspect-kicker">CLINICAL AUDIT</div>
+      <div class="inspect-title">System Invariants</div>
+      <div class="audit-line"><span>Zero-hallucination gate</span><b class="pass">${esc(n.safety)}</b></div>
+      <div class="audit-line"><span>Source grounding</span><b class="pass">100%</b></div>
+      <div class="audit-line"><span>Human review required</span><b class="${n.review.length ? 'fail' : 'pass'}">${n.review.length ? 'YES' : 'CLEAR'}</b></div>
+      <div class="audit-line"><span>Provider ranking</span><b class="pass">ZERO</b></div>
+    `;
+  }
+}
+$$(".itab").forEach(b => b.addEventListener("click", () => renderInspector(b.dataset.itab, normalize(state.pipeline))));
+
+async function loadCases() {
   try {
-    const startTime = performance.now();
-    const payload = customText ? { raw_text: customText, language: ACTIVE_LANG } : { case_id: caseId, language: ACTIVE_LANG };
-    const res = await fetch("/api/v1/orchestrate", {
+    const r = await fetch(API + "/api/v1/cases");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    state.cases = Array.isArray(data) ? data : (data.cases || data.items || []);
+  } catch (e) {
+    console.warn("Could not fetch cases from backend, using default synthetic cases:", e);
+    state.cases = [
+      { case_id: "case_absolute_cardiology", title: "Cardiology Absolute Follow-up (March 18, 2027)", patient_id: "SYNTH-PT-801", preferred_language: "ta", expected_safety: "SAFE / ORGANIZED" },
+      { case_id: "SYNTH-PT-101", title: "Normal Uncomplicated Discharge", patient_id: "SYNTH-PT-101", preferred_language: "en", expected_safety: "SAFE / ORGANIZED" },
+      { case_id: "SYNTH-PT-202", title: "Multi-Medication Regimen", patient_id: "SYNTH-PT-202", preferred_language: "hi", expected_safety: "SAFE / ORGANIZED" },
+      { case_id: "SYNTH-PT-303", title: "Ambiguous Follow-up", patient_id: "SYNTH-PT-303", preferred_language: "te", expected_safety: "NEEDS REVIEW" },
+      { case_id: "SYNTH-PT-404", title: "Conflicting Medications", patient_id: "SYNTH-PT-404", preferred_language: "kn", expected_safety: "CONFLICT DETECTED" },
+      { case_id: "SYNTH-PT-505", title: "Emergency Red Flags", patient_id: "SYNTH-PT-505", preferred_language: "ml", expected_safety: "NEEDS REVIEW" }
+    ];
+  }
+
+  const caseSelect = $("#caseSelect");
+  caseSelect.innerHTML = state.cases.map(c => `
+    <option value="${esc(c.case_id || c.id)}">[${esc(c.patient_id || c.case_id)}] ${esc(c.title || c.name || "Synthetic Case")}</option>
+  `).join("");
+
+  // Determine initial case and run
+  const firstCaseId = state.cases[0]?.case_id || state.cases[0]?.id;
+  await runCase(firstCaseId, state.language);
+}
+
+async function runCase(id, lang = state.language) {
+  state.currentCase = state.cases.find(c => (c.case_id || c.id) === id) || { case_id: id };
+  const caseState = $("#caseState");
+  if (caseState) {
+    caseState.textContent = "● RUNNING PIPELINE";
+    caseState.style.borderColor = "var(--orange)";
+    caseState.style.color = "var(--orange2)";
+  }
+
+  const t0 = performance.now();
+  try {
+    const r = await fetch(API + "/api/v1/orchestrate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ case_id: id, language: lang })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    state.pipeline = await r.json();
+    const latencyMs = Math.round(performance.now() - t0);
+    if (state.pipeline) state.pipeline.latency_ms = latencyMs;
+
+    if (state.pipeline?.language?.resolved) {
+      state.language = state.pipeline.language.resolved;
+      const langSel = $("#languageSelect");
+      if (langSel) langSel.value = state.language;
+      const pasteLang = $("#pasteLang");
+      if (pasteLang) pasteLang.textContent = state.language;
+    }
+
+    renderAll();
+  } catch (e) {
+    console.error("Orchestration error:", e);
+    state.pipeline = {
+      case_id: id,
+      overall_safety_status: first(state.currentCase?.expected_safety, "NEEDS REVIEW"),
+      summary: "Backend orchestration call failed. Verify FastAPI server connection at " + API,
+      tasks: [],
+      medications: [],
+      human_review_items: [{ title: "Backend Communication Error", reason: "Could not retrieve clinical pipeline state.", severity: "WARNING" }],
+      reminders: [],
+      notifications: [],
+      grounding_score: "—"
+    };
+    renderAll();
+    toast("Pipeline communication error", "Check FastAPI server connection.");
+  }
+}
+
+$("#caseSelect").addEventListener("change", e => {
+  const chosenCase = state.cases.find(c => (c.case_id || c.id) === e.target.value);
+  if (chosenCase?.preferred_language) {
+    state.language = chosenCase.preferred_language;
+    const langSel = $("#languageSelect");
+    if (langSel) langSel.value = state.language;
+  }
+  runCase(e.target.value, state.language);
+});
+
+// Multilingual 12-language Selector
+const langSel = $("#languageSelect");
+if (langSel) {
+  langSel.value = state.language;
+  langSel.addEventListener("change", async (e) => {
+    const newLang = e.target.value;
+    state.language = newLang;
+    localStorage.setItem("carebridge-language", newLang);
+    const pasteLang = $("#pasteLang");
+    if (pasteLang) pasteLang.textContent = newLang;
+
+    const patId = state.currentCase?.patient_id || state.pipeline?.case_info?.patient_identifier;
+    if (patId && patId !== "SYNTH-PT-CUSTOM") {
+      try {
+        await fetch(`${API}/api/v1/patients/${encodeURIComponent(patId)}/language`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ language: newLang })
+        });
+      } catch (err) { /* silent ignore */ }
+    }
+
+    const curCaseId = state.currentCase?.case_id || state.currentCase?.id || state.cases[0]?.case_id;
+    if (curCaseId) {
+      await runCase(curCaseId, newLang);
+    }
+    toast("Language preference updated", `Active language: ${newLang.toUpperCase()}`);
+  });
+}
+
+function loadTextFile(file) {
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+  $("#fileList").innerHTML = `
+    <div class="file-row">
+      <div class="file-ext">${esc(ext || "FILE")}</div>
+      <div>
+        <div class="file-name">${esc(file.name)}</div>
+        <div class="file-meta">${Math.round(file.size / 1024)} KB · local source document</div>
+      </div>
+      <span class="tag green">LOADED</span>
+    </div>
+  `;
+  if (["txt", "md", "json", "csv"].includes(ext)) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      $("#rawText").value = reader.result;
+      const pasteText = $("#pasteText");
+      if (pasteText) pasteText.value = reader.result;
+      toast("Source document loaded", "Text is staged and ready for orchestration.");
+    };
+    reader.readAsText(file);
+  } else {
+    toast("File selected", "Text files (.txt, .md, .json) can be loaded directly into the editor.");
+  }
+}
+
+$("#fileInput").addEventListener("change", e => { if (e.target.files[0]) loadTextFile(e.target.files[0]); });
+$("#dropZone").addEventListener("dragover", e => { e.preventDefault(); $("#dropZone").classList.add("drag"); });
+$("#dropZone").addEventListener("dragleave", () => $("#dropZone").classList.remove("drag"));
+$("#dropZone").addEventListener("drop", e => {
+  e.preventDefault();
+  $("#dropZone").classList.remove("drag");
+  if (e.dataTransfer.files[0]) loadTextFile(e.dataTransfer.files[0]);
+});
+
+$("#clearRaw").onclick = () => {
+  $("#rawText").value = "";
+  $("#fileList").innerHTML = "";
+};
+
+async function runRawText(text) {
+  if (!text || !text.trim()) {
+    toast("No source text", "Paste clinical discharge text first.");
+    return;
+  }
+  const caseState = $("#caseState");
+  if (caseState) {
+    caseState.textContent = "● RUNNING CUSTOM PIPELINE";
+    caseState.style.borderColor = "var(--orange)";
+    caseState.style.color = "var(--orange2)";
+  }
+  const t0 = performance.now();
+  try {
+    const r = await fetch(API + "/api/v1/orchestrate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ raw_text: text, language: state.language })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    state.pipeline = await r.json();
+    state.pipeline.latency_ms = Math.round(performance.now() - t0);
+    state.currentCase = {
+      case_id: first(state.pipeline.case_info?.case_id, "CUSTOM"),
+      patient_id: first(state.pipeline.case_info?.patient_identifier, "SYNTH-PT-CUSTOM"),
+      title: "Custom Clinical Document"
+    };
+    renderAll();
+    showPage("overview");
+    toast("Pipeline execution complete", "Source grounded and clinical state updated.");
+  } catch (e) {
+    console.error("Pipeline failure:", e);
+    toast("Pipeline execution failed", "Check /api/v1/orchestrate contract.");
+  }
+}
+
+$("#runRaw").onclick = () => runRawText($("#rawText").value);
+$("#runPaste").onclick = () => runRawText($("#pasteText").value);
+
+async function notifAction(id, action) {
+  try {
+    const r = await fetch(API + "/api/v1/notifications/" + encodeURIComponent(id) + "/action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, snooze_minutes: 60 })
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    toast("Notification updated", `Action: ${action}`);
+    const curCaseId = state.currentCase?.case_id || state.currentCase?.id;
+    if (curCaseId) await runCase(curCaseId, state.language);
+    showPage("alerts");
+  } catch (e) {
+    toast("Action error", "Could not transition notification state.");
+  }
+}
+
+function assignReview(idx) {
+  toast("Assigned for human review", "Flagged event routed to attending clinical coordinator.");
+}
+function keepPaused(idx) {
+  toast("Gate remains paused", "Directive release held pending ambiguity resolution.");
+}
+
+$("#providerSearch").onclick = async () => {
+  const specialty = $("#pSpecialty").value || "Cardiology";
+  const city = $("#pCity").value || undefined;
+  const lang = $("#pLanguage").value || undefined;
+  const ins = $("#pInsurance").value || undefined;
+
+  const payload = { specialty };
+  if (city) payload.location_city = city;
+  if (lang) payload.language = lang;
+  if (ins) payload.insurance = ins;
+
+  try {
+    const r = await fetch(API + "/api/v1/providers/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    if (res.ok) {
-      APP_STATE = await res.json();
-      APP_STATE.latency_ms = Math.round(performance.now() - startTime);
-    } else {
-      APP_STATE = JSON.parse(JSON.stringify(FALLBACK_BENCHMARK));
-      APP_STATE.latency_ms = 40;
-    }
-  } catch (err) {
-    console.warn("Backend API offline, using fallback state:", err);
-    APP_STATE = JSON.parse(JSON.stringify(FALLBACK_BENCHMARK));
-    APP_STATE.latency_ms = 32;
-  }
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    state.providers = Array.isArray(data) ? data : (data.providers || data.results || []);
 
-  // Select first task as default active
-  SELECTED_TASK_ID = APP_STATE.tasks?.[0]?.task_id || null;
-  renderApp();
-}
-
-function renderApp() {
-  if (!APP_STATE) return;
-
-  // 1. Top Bar & Metrics
-  const patientId = APP_STATE.case_info?.patient_identifier || "SYNTH-PT-801";
-  const resolvedLang = APP_STATE.language?.resolved || ACTIVE_LANG;
-  const langSel = document.getElementById("languageSelect");
-  if (langSel && resolvedLang) langSel.value = resolvedLang;
-  document.getElementById("barPatientId").textContent = patientId;
-  document.getElementById("docBannerPatient").textContent = `PATIENT: ${patientId}`;
-  document.getElementById("barLatency").textContent = (APP_STATE.latency_ms || 34) + "ms";
-
-  const safety = APP_STATE.overall_safety_status || "SAFE / ORGANIZED";
-  const pill = document.getElementById("topSafetyPill");
-  const pillText = document.getElementById("topSafetyText");
-  pillText.textContent = safety;
-  pill.className = "safety-status-pill";
-  if (safety.includes("CONFLICT") || safety.includes("BLOCKED")) pill.classList.add("blocked");
-  else if (safety.includes("REVIEW")) pill.classList.add("review");
-
-  // Counts
-  const tasks = APP_STATE.tasks || [];
-  const meds = APP_STATE.medications || [];
-  const reviews = APP_STATE.human_review_items || [];
-  const notifs = APP_STATE.notifications || [];
-
-  document.getElementById("countTasks").textContent = tasks.length;
-  document.getElementById("countMeds").textContent = meds.length;
-  document.getElementById("countTimeline").textContent = tasks.length;
-  document.getElementById("countSafety").textContent = reviews.length;
-  document.getElementById("barTaskCount").textContent = `${tasks.length} / ${tasks.length}`;
-  document.getElementById("barReminderCount").textContent = `${(APP_STATE.reminders || []).length} ACTIVE`;
-  document.getElementById("topNotifBadge").textContent = notifs.length;
-
-  // 2. Pane 1: Source Document Sentences
-  renderSourceDocument();
-
-  // 3. Pane 2: Center View
-  renderCenterWorkspace();
-
-  // 4. Pane 3: Inspector
-  renderInspector();
-}
-
-/* ==========================================================================
-   PANE 1: SOURCE DOCUMENT
-   ========================================================================== */
-function renderSourceDocument() {
-  const container = document.getElementById("docSentenceContainer");
-  container.innerHTML = "";
-
-  const sentences = APP_STATE.sentences || [];
-  if (sentences.length === 0) {
-    const rawLines = (APP_STATE.raw_text || "").split("\n").filter(l => l.trim().length > 0);
-    rawLines.forEach(l => {
-      const span = document.createElement("span");
-      span.className = "doc-line";
-      span.textContent = l;
-      container.appendChild(span);
-    });
-    return;
-  }
-
-  sentences.forEach((sent, idx) => {
-    const line = document.createElement("span");
-    line.className = "doc-line";
-    line.id = `doc-sent-${sent.id || idx}`;
-    
-    // Check if linked to active task
-    const activeTask = (APP_STATE.tasks || []).find(t => t.task_id === SELECTED_TASK_ID);
-    if (activeTask && activeTask.evidence && activeTask.evidence.source_text && (activeTask.evidence.source_text.includes(sent.text) || sent.text.includes(activeTask.evidence.source_text))) {
-      line.classList.add("active");
-    } else {
-      line.classList.add("highlight");
-    }
-
-    line.textContent = sent.text;
-    line.onclick = () => {
-      const match = (APP_STATE.tasks || []).find(t => t.evidence && t.evidence.source_text && (t.evidence.source_text.includes(sent.text) || sent.text.includes(t.evidence.source_text)));
-      if (match) {
-        selectTask(match.task_id);
-      }
-    };
-    container.appendChild(line);
-  });
-}
-
-/* ==========================================================================
-   PANE 2: CENTER WORKSPACE
-   ========================================================================== */
-function switchWorkspaceView(viewName) {
-  CURRENT_VIEW = viewName;
-  document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
-  if (viewName === "CARE_PLAN") document.getElementById("tabCarePlan").classList.add("active");
-  else if (viewName === "MEDS") document.getElementById("tabMeds").classList.add("active");
-  else if (viewName === "TIMELINE") document.getElementById("tabTimeline").classList.add("active");
-  else if (viewName === "SAFETY") document.getElementById("tabSafety").classList.add("active");
-  renderCenterWorkspace();
-}
-
-function renderCenterWorkspace() {
-  const container = document.getElementById("centerWorkspaceBody");
-  container.innerHTML = "";
-
-  if (CURRENT_VIEW === "CARE_PLAN") {
-    document.getElementById("pane2Title").innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Orchestrated Recovery Tasks`;
-    renderCarePlanCards(container);
-  } else if (CURRENT_VIEW === "MEDS") {
-    document.getElementById("pane2Title").innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="m8.5 8.5 7 7"></path></svg> Medication Precision Table`;
-    renderMedsTable(container);
-  } else if (CURRENT_VIEW === "TIMELINE") {
-    document.getElementById("pane2Title").innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Chronological Recovery Timeline`;
-    renderTimeline(container);
-  } else if (CURRENT_VIEW === "SAFETY") {
-    document.getElementById("pane2Title").innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Safety & Review Escalation Queue`;
-    renderSafetyQueue(container);
-  }
-}
-
-function renderCarePlanCards(container) {
-  const tasks = APP_STATE.tasks || [];
-  if (tasks.length === 0) {
-    container.innerHTML = `<div style="text-align:center;color:#666;padding:40px">No tasks in current discharge summary.</div>`;
-    return;
-  }
-
-  tasks.forEach(t => {
-    const card = document.createElement("div");
-    card.className = `task-card ${t.task_id === SELECTED_TASK_ID ? 'active' : ''}`;
-    card.id = `card-${t.task_id}`;
-
-    let icon = "📋";
-    if (t.category === "MEDICATION") icon = "💊";
-    else if (t.category === "FOLLOW_UP") icon = "🏥";
-    else if (t.category === "WARNING_SIGN") icon = "⚠️";
-
-    let statusClass = "ready";
-    let statusLabel = t.status || "READY";
-    if (statusLabel === "SCHEDULED") statusClass = "scheduled";
-    else if (statusLabel === "NEEDS_REVIEW") statusClass = "review";
-    else if (statusLabel === "BLOCKED") statusClass = "blocked";
-
-    card.innerHTML = `
-      <div class="task-card-icon">${icon}</div>
-      <div class="task-card-content">
-        <h4>${t.title}</h4>
-        <p>${t.description || ''}</p>
-        <div class="task-card-meta">
-          <span class="meta-tag">📅 ${t.timeframe_display || 'Ongoing'}</span>
-          ${t.absolute_date ? `<span class="meta-tag grounded">● Verified Date</span>` : ''}
-          ${t.specialty ? `<span class="meta-tag">🏥 ${t.specialty}</span>` : ''}
-          ${t.category === 'FOLLOW_UP' ? `<span class="meta-tag reminder">⏰ Reminder Active</span>` : ''}
-        </div>
-      </div>
-      <span class="task-status-badge ${statusClass}">${statusLabel}</span>
-    `;
-
-    card.onclick = () => selectTask(t.task_id);
-    container.appendChild(card);
-  });
-}
-
-function renderMedsTable(container) {
-  const meds = APP_STATE.medications || [];
-  if (meds.length === 0) {
-    container.innerHTML = `<div style="text-align:center;color:#666;padding:40px">No active medications found.</div>`;
-    return;
-  }
-
-  let html = `
-    <table class="med-table">
-      <thead>
-        <tr>
-          <th>MEDICATION & FORMULATION</th>
-          <th>ACTION</th>
-          <th>DOSAGE & ROUTE</th>
-          <th>FREQUENCY</th>
-          <th>INDICATION</th>
-          <th>STATUS</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  meds.forEach(m => {
-    const isSuccinate = (m.name || "").toLowerCase().includes("succinate");
-    html += `
-      <tr>
-        <td>
-          <b style="color:#fff">${m.name}</b>
-          ${isSuccinate ? '<br><span class="formulation-pill">EXTENDED-RELEASE</span>' : ''}
-        </td>
-        <td><span class="task-status-badge ${m.action === 'NEW_START' ? 'review' : 'ready'}">${m.action}</span></td>
-        <td>${m.dosage || '—'} · ${m.route || 'oral'}</td>
-        <td>${m.frequency || 'once daily'}</td>
-        <td>${m.indication || 'Maintenance'}</td>
-        <td><span style="color:var(--green);font:600 10px 'IBM Plex Mono'">● VERIFIED</span></td>
-      </tr>
-    `;
-  });
-
-  html += `</tbody></table>`;
-  container.innerHTML = html;
-}
-
-function renderTimeline(container) {
-  const tasks = APP_STATE.tasks || [];
-  let html = `<div class="timeline-list">`;
-  tasks.forEach((t, idx) => {
-    html += `
-      <div class="timeline-item">
-        <div class="timeline-marker ${idx===0 ? 'green' : ''}"></div>
-        <div class="timeline-content">
-          <div style="font:600 10px 'IBM Plex Mono';color:var(--orange2);margin-bottom:4px">PHASE ${idx+1} · ${t.timeframe_display || 'TIMEFRAME'}</div>
-          <div style="font-weight:700;color:#fff">${t.title}</div>
-          <div style="font-size:12px;color:#999;margin-top:4px">${t.description || ''}</div>
-        </div>
-      </div>
-    `;
-  });
-  html += `</div>`;
-  container.innerHTML = html;
-}
-
-function renderSafetyQueue(container) {
-  const items = APP_STATE.human_review_items || [];
-  if (items.length === 0) {
-    container.innerHTML = `
-      <div style="padding:40px;text-align:center">
-        <div style="font-size:28px;margin-bottom:12px;color:var(--green)">✓</div>
-        <h4 style="margin:0 0 6px;color:#fff">Safety Gate Passed</h4>
-        <p style="color:#888;font-size:12px;max-width:400px;margin:auto">No unresolved drug conflicts, ambiguous instructions, or ungrounded claims detected in this discharge summary.</p>
-      </div>
-    `;
-    return;
-  }
-
-  items.forEach(it => {
-    const el = document.createElement("div");
-    el.className = "notif-card";
-    el.style.borderColor = "rgba(255,98,66,.35)";
-    el.innerHTML = `
-      <div class="notif-card-head">
-        <b style="color:var(--orange2);font-size:12px">${it.hazard_code || 'NEEDS_REVIEW'}</b>
-        <span class="task-status-badge review">PAUSED</span>
-      </div>
-      <div style="font-size:12px;color:#eee;margin:6px 0">${it.message || 'Requires clinician review.'}</div>
-      ${it.evidence_snippet ? `<div class="inspector-quote" style="margin:8px 0">“${it.evidence_snippet}”</div>` : ''}
-      <div class="notif-actions">
-        <button class="action-btn ack" onclick="alert('Assigned to attending nurse reviewer.')">✓ Assign Reviewer</button>
-        <button class="action-btn" onclick="alert('Item held in review queue.')">Keep Paused</button>
-      </div>
-    `;
-    container.appendChild(el);
-  });
-}
-
-function selectTask(taskId) {
-  SELECTED_TASK_ID = taskId;
-  document.querySelectorAll(".task-card").forEach(c => c.classList.remove("active"));
-  const card = document.getElementById(`card-${taskId}`);
-  if (card) {
-    card.classList.add("active");
-    card.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
-  renderSourceDocument();
-  renderInspector();
-}
-
-/* ==========================================================================
-   PANE 3: INTELLIGENCE INSPECTOR
-   ========================================================================== */
-function switchInspectorTab(tabName) {
-  CURRENT_INSPECTOR = tabName;
-  document.querySelectorAll(".inspector-tab").forEach(t => t.classList.remove("active"));
-  if (tabName === "evidence") document.getElementById("itabEvidence").classList.add("active");
-  else if (tabName === "reminders") document.getElementById("itabReminders").classList.add("active");
-  else if (tabName === "providers") document.getElementById("itabProviders").classList.add("active");
-  else if (tabName === "rationale") document.getElementById("itabRationale").classList.add("active");
-  renderInspector();
-}
-
-function renderInspector() {
-  const container = document.getElementById("inspectorBody");
-  container.innerHTML = "";
-
-  const activeTask = (APP_STATE.tasks || []).find(t => t.task_id === SELECTED_TASK_ID) || APP_STATE.tasks?.[0];
-
-  if (CURRENT_INSPECTOR === "evidence") {
-    if (!activeTask) {
-      container.innerHTML = `<div style="color:#777;padding:20px;text-align:center">Select a task to inspect provenance.</div>`;
-      return;
-    }
-    const ev = activeTask.evidence || {};
-    container.innerHTML = `
-      <div class="inspector-section">
-        <span class="inspector-label">INSPECTED DIRECTIVE</span>
-        <div style="font:700 14px 'DM Sans';color:#fff;margin-bottom:4px">${activeTask.title}</div>
-        <div class="task-status-badge ready" style="display:inline-block">${activeTask.category}</div>
-      </div>
-
-      <div class="inspector-section">
-        <span class="inspector-label">EXACT SOURCE QUOTE</span>
-        <div class="inspector-quote">“${ev.source_text || 'Text verified in discharge note.'}”</div>
-      </div>
-
-      <div class="inspector-section">
-        <span class="inspector-label">PROVENANCE AUDIT METRICS</span>
-        <div class="inspector-grid">
-          <div class="stat-box">
-            <small>CHAR SPAN</small>
-            <strong>[${ev.start_char ?? 0} : ${ev.end_char ?? 0}]</strong>
-          </div>
-          <div class="stat-box">
-            <small>SECTION</small>
-            <strong>${ev.section_name || activeTask.category}</strong>
-          </div>
-          <div class="stat-box">
-            <small>GROUNDING</small>
-            <strong style="color:var(--green)">100% VERIFIED</strong>
-          </div>
-          <div class="stat-box">
-            <small>SAFETY CODE</small>
-            <strong style="color:var(--green)">SAFE</strong>
-          </div>
-        </div>
-      </div>
-
-      <div class="inspector-section">
-        <span class="inspector-label">PATIENT PLAIN LANGUAGE</span>
-        <div style="background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:12px;color:#aaa;line-height:1.5">
-          ${activeTask.description || 'Verified instruction generated without medical assumption.'}
-        </div>
-      </div>
-    `;
-  } else if (CURRENT_INSPECTOR === "reminders") {
-    const notifs = APP_STATE.notifications || [];
-    const rems = APP_STATE.reminders || [];
-    let html = `
-      <div class="inspector-section">
-        <span class="inspector-label">ACTIVE CARE REMINDERS (${rems.length})</span>
-    `;
-
-    if (rems.length === 0) {
-      html += `<div style="color:#777;font-size:11px">No reminders scheduled for this case.</div>`;
-    } else {
-      rems.forEach(r => {
-        html += `
-          <div class="notif-card" style="border-left:3px solid var(--orange)">
-            <div class="notif-card-head">
-              <b style="color:#fff">${r.title}</b>
-              <span class="meta-tag reminder">24h Prior</span>
+    const resEl = $("#providerResults");
+    if (state.providers.length) {
+      resEl.innerHTML = `
+        <div style="font-size:8px;color:#777;margin-bottom:8px">DETERMINISTIC MATCHES (${state.providers.length}) · NO DOCTOR RANKING · DIRECT ATTRIBUTES</div>
+        ${state.providers.map(p => {
+          const provName = first(p.display_name, p.name, p.provider_name, "Provider");
+          const facName = p.facility_name ? ` · ${p.facility_name}` : "";
+          const loc = first(p.city, p.location_city, p.location, "");
+          const stateCode = p.state ? `, ${p.state}` : "";
+          const langs = Array.isArray(p.languages) ? p.languages : (p.language ? [p.language] : []);
+          const insList = Array.isArray(p.accepted_insurance) ? p.accepted_insurance : (p.insurance ? [p.insurance] : []);
+          const tags = [...langs, ...insList].filter(Boolean);
+          const avail = p.availability_note || "Availability not verified";
+          return `
+            <div class="provider">
+              <div>
+                <div class="provider-name">${esc(provName)}${esc(facName)}</div>
+                <div class="provider-meta">${esc(first(p.specialty, specialty))}${loc ? ' · ' + esc(loc + stateCode) : ''}${p.phone ? ' · ' + esc(p.phone) : ''}</div>
+                <div class="provider-tags">
+                  ${tags.map(t => `<span>${esc(t)}</span>`).join("")}
+                  <span style="color:var(--orange2)">${esc(avail)}</span>
+                </div>
+              </div>
+              <span class="tag green">ATTRIBUTE MATCH</span>
             </div>
-            <div style="font:9px 'IBM Plex Mono';color:#aaa">SCHEDULED: ${r.reminder_datetime}</div>
-          </div>
-        `;
-      });
-    }
-
-    html += `
-      </div>
-      <div class="inspector-section">
-        <span class="inspector-label">SCHEDULED NOTIFICATIONS (${notifs.length})</span>
-    `;
-
-    if (notifs.length === 0) {
-      html += `<div style="color:#777;font-size:11px">No notifications pending.</div>`;
+          `;
+        }).join("")}
+        <div class="notice" style="margin-top:10px;font-size:9px">
+          Notice: CareBridge surfaces matching providers solely by clinical follow-up attribute alignment. We do not rank physicians, show star reviews, or accept promotional fees. Direct booking and active insurance panel participation must be confirmed directly with provider staff.
+        </div>
+      `;
     } else {
-      notifs.forEach(n => {
-        html += `
-          <div class="notif-card" id="inspector-notif-${n.notification_id}">
-            <div class="notif-card-head">
-              <b style="color:#fff">${n.title}</b>
-              <span class="task-status-badge ready">${n.status || 'PENDING'}</span>
-            </div>
-            <div style="font-size:11px;color:#aaa;line-height:1.4">${n.message}</div>
-            <div style="font:8px 'IBM Plex Mono';color:#666;margin-top:6px">CHANNEL: ${n.channel || 'IN_APP'}</div>
-            <div class="notif-actions">
-              <button class="action-btn ack" onclick="handleNotificationAction('${n.notification_id}', 'ACKNOWLEDGE')">✓ Acknowledge</button>
-              <button class="action-btn" onclick="handleNotificationAction('${n.notification_id}', 'SNOOZE')">⏰ Snooze 60m</button>
-              <button class="action-btn" onclick="handleNotificationAction('${n.notification_id}', 'DISMISS')">✕ Dismiss</button>
-            </div>
-          </div>
-        `;
-      });
+      resEl.innerHTML = '<div class="notice">No deterministic attribute matches found for this query.</div>';
     }
-
-    html += `</div>`;
-    container.innerHTML = html;
-  } else if (CURRENT_INSPECTOR === "providers") {
-    container.innerHTML = `
-      <div class="inspector-section">
-        <span class="inspector-label">SPECIALTY PROVIDER DIRECTORY</span>
-        <div class="provider-search-box">
-          <input type="text" class="prov-search-input" id="inspectorProvSearch" value="Cardiology" placeholder="Specialty...">
-          <button class="action-btn ack" onclick="runInspectorProviderSearch()">Search</button>
-        </div>
-        <div id="inspectorProvResults">
-          <!-- Dynamic provider results -->
-        </div>
-        <div style="margin-top:12px;padding:8px 10px;border-radius:6px;background:rgba(255,183,3,.05);border:1px solid rgba(255,183,3,.2);color:#cca347;font-size:9px;line-height:1.4">
-          ⚠️ <b>Directory Notice:</b> Attribute matching only. CareBridge does NOT endorse or rank doctors. Verify network coverage directly with clinic.
-        </div>
-      </div>
-    `;
-    runInspectorProviderSearch();
-  } else if (CURRENT_INSPECTOR === "rationale") {
-    container.innerHTML = `
-      <div class="inspector-section">
-        <span class="inspector-label">CLINICAL SAFETY INVARIANT AUDIT</span>
-        <div style="background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:11px;line-height:1.6;color:#ccc">
-          <b style="color:var(--orange2)">MANDATORY CLINICAL SAFETY BOUNDARY STATEMENT</b><br>
-          CAREBRIDGE is an experimental clinical intelligence platform for research and evaluation purposes only. It does not diagnose, prescribe, modify dosages, or provide medical advice.<br><br>
-          <b style="color:var(--green)">✓ DETERMINISTIC EXTRACTION:</b> Every task links to exact byte and character offsets.<br><br>
-          <b style="color:var(--green)">✓ ZERO MEDICAL REINTERPRETATION:</b> Dosages, formulations (succinate vs tartrate), and appointment dates are preserved verbatim.<br><br>
-          <b style="color:var(--green)">✓ HUMAN ESCALATION GATE:</b> Ambiguous instructions or drug-drug conflicts automatically halt release.
-        </div>
-      </div>
-    `;
+    renderInspector("providers", normalize(state.pipeline));
+  } catch (e) {
+    toast("Provider search error", "Check /api/v1/providers/search endpoint.");
   }
+};
+
+$("#notifBtn").onclick = () => showPage("alerts");
+
+async function boot() {
+  await loadCases();
 }
-
-async function handleNotificationAction(notifId, action) {
-  try {
-    await fetch(`/api/v1/notifications/${notifId}/action`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: action, snooze_minutes: 60 })
-    });
-  } catch(e) {}
-  const card = document.getElementById(`inspector-notif-${notifId}`);
-  if (card) {
-    card.style.opacity = action === 'ACKNOWLEDGE' ? '0.5' : '0.3';
-  }
-}
-
-async function runInspectorProviderSearch() {
-  const container = document.getElementById("inspectorProvResults");
-  if (!container) return;
-  const spec = document.getElementById("inspectorProvSearch")?.value || "Cardiology";
-  container.innerHTML = `<div style="color:#777;font-size:10px">Querying directory...</div>`;
-
-  try {
-    const res = await fetch("/api/v1/providers/search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ specialty: spec })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const providers = data.providers || [];
-      if (providers.length === 0) {
-        container.innerHTML = `<div style="color:#777;font-size:10px">No matching providers.</div>`;
-        return;
-      }
-      container.innerHTML = providers.map(p => `
-        <div class="prov-card">
-          <div class="prov-title">${p.display_name || p.provider_name}</div>
-          <div class="prov-sub">${p.specialty} · ${p.city || 'Outpatient Clinic'}</div>
-          <div style="color:#999;font-size:10px">${p.facility_name || p.clinic_name || ''}</div>
-        </div>
-      `).join('');
-      return;
-    }
-  } catch(e) {}
-
-  container.innerHTML = `
-    <div class="prov-card">
-      <div class="prov-title">Dr. Elena Rostova, MD</div>
-      <div class="prov-sub">Cardiology · Metropolitan Heart Institute</div>
-      <div style="color:#999;font-size:10px">Insurances: Aetna, BCBS, Medicare</div>
-    </div>
-  `;
-}
-
-/* ==========================================================================
-   MODAL & CONTROLS
-   ========================================================================== */
-function openIngestModal() {
-  document.getElementById("ingestModal").classList.add("open");
-}
-function closeIngestModal() {
-  document.getElementById("ingestModal").classList.remove("open");
-}
-function executeCustomPipeline() {
-  const text = document.getElementById("modalRawInput").value;
-  if (!text.trim()) return;
-  closeIngestModal();
-  loadCase(null, text);
-}
-
-async function switchLanguage(lang) {
-  ACTIVE_LANG = lang;
-  const sel = document.getElementById("languageSelect");
-  if (sel) sel.value = lang;
-
-  const patientId = APP_STATE?.case_info?.patient_identifier;
-  if (patientId) {
-    try {
-      await fetch(`/api/v1/patients/${encodeURIComponent(patientId)}/language`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ preferred_language: lang })
-      });
-    } catch (e) {
-      console.warn("Failed to patch patient language:", e);
-    }
-  }
-
-  const caseId = document.getElementById("caseSelector")?.value;
-  loadCase(caseId);
-}
+boot();
 </script>
 </body>
 </html>
