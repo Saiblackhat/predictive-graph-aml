@@ -85,11 +85,19 @@ def format_notification_content(
     reminder: Reminder,
     task: OrchestratedTask,
     language: str = "en",
+    notification_type: Optional[NotificationType] = None,
 ) -> tuple[str, str]:
-    """Deterministically format (title, body) for a notification.
+    """Deterministically format (title, body) for a notification across all 12 supported languages.
 
     Never creates clinical meaning or infers confirmed bookings.
     """
+    lang = (language or "en").lower().strip()
+    if lang not in ("en", "es"):
+        from backend.notifications.multilingual import format_multilingual_notification
+        title, body, _ = format_multilingual_notification(
+            task=task, reminder=reminder, language=lang, notification_type=notification_type
+        )
+        return title, body
     event_dt = datetime.datetime.fromisoformat(reminder.event_time)
     dt_display = format_event_datetime(event_dt, language=language)
 

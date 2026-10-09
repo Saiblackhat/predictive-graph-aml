@@ -453,9 +453,22 @@ a{color:inherit;text-decoration:none}
 
     <!-- Right Controls: Language & Notifications -->
     <div class="top-bar-right">
-      <div class="lang-toggle">
-        <button class="lang-btn active" id="langEn" onclick="switchLanguage('en')">EN</button>
-        <button class="lang-btn" id="langEs" onclick="switchLanguage('es')">ES</button>
+      <div class="lang-toggle" style="display:flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#888;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        <select id="languageSelect" class="lang-select" onchange="switchLanguage(this.value)" style="background:#111;color:#fff;border:1px solid #333;border-radius:6px;padding:4px 8px;font-family:var(--font-mono);font-size:11px;outline:none;cursor:pointer;">
+          <option value="en">English (EN)</option>
+          <option value="es">Español (ES)</option>
+          <option value="hi">हिन्दी (HI)</option>
+          <option value="ta">தமிழ் (TA)</option>
+          <option value="te">తెలుగు (TE)</option>
+          <option value="kn">ಕನ್ನಡ (KN)</option>
+          <option value="ml">മലയാളം (ML)</option>
+          <option value="bn">বাংলা (BN)</option>
+          <option value="mr">मराठी (MR)</option>
+          <option value="gu">ગુજરાતી (GU)</option>
+          <option value="pa">ਪੰਜਾਬੀ (PA)</option>
+          <option value="or">ଓଡ଼ିଆ (OR)</option>
+        </select>
       </div>
 
       <button class="bell-btn" onclick="switchInspectorTab('reminders')" title="Notification Center">
@@ -733,6 +746,9 @@ function renderApp() {
 
   // 1. Top Bar & Metrics
   const patientId = APP_STATE.case_info?.patient_identifier || "SYNTH-PT-801";
+  const resolvedLang = APP_STATE.language?.resolved || ACTIVE_LANG;
+  const langSel = document.getElementById("languageSelect");
+  if (langSel && resolvedLang) langSel.value = resolvedLang;
   document.getElementById("barPatientId").textContent = patientId;
   document.getElementById("docBannerPatient").textContent = `PATIENT: ${patientId}`;
   document.getElementById("barLatency").textContent = (APP_STATE.latency_ms || 34) + "ms";
@@ -1216,11 +1232,25 @@ function executeCustomPipeline() {
   loadCase(null, text);
 }
 
-function switchLanguage(lang) {
+async function switchLanguage(lang) {
   ACTIVE_LANG = lang;
-  document.getElementById("langEn").classList.toggle("active", lang === "en");
-  document.getElementById("langEs").classList.toggle("active", lang === "es");
-  const caseId = document.getElementById("caseSelector").value;
+  const sel = document.getElementById("languageSelect");
+  if (sel) sel.value = lang;
+
+  const patientId = APP_STATE?.case_info?.patient_identifier;
+  if (patientId) {
+    try {
+      await fetch(`/api/v1/patients/${encodeURIComponent(patientId)}/language`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preferred_language: lang })
+      });
+    } catch (e) {
+      console.warn("Failed to patch patient language:", e);
+    }
+  }
+
+  const caseId = document.getElementById("caseSelector")?.value;
   loadCase(caseId);
 }
 </script>

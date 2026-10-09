@@ -10,19 +10,27 @@ from __future__ import annotations
 import datetime
 from typing import Any, Optional
 
+from fastapi import HTTPException
+
 from backend.care_reminders import (
     ReminderPreset,
     check_reminder_eligibility,
     create_reminder,
 )
-from backend.care_reminders.types import Reminder
+from backend.care_reminders.types import Reminder, ReminderStatus
 from backend.document_intelligence import run_document_intelligence_pipeline
 from backend.document_intelligence.fixtures import ALL_PHASE4_SYNTHETIC_DOCUMENTS
 from backend.notifications import (
     Notification,
     NotificationAction,
     NotificationCenterState,
+    NotificationChannel,
+    NotificationPriority,
     NotificationStatus,
+    NotificationSummary,
+    NotificationType,
+    SUPPORTED_LANGUAGES,
+    TranslationStatus,
     acknowledge_notification,
     cancel_notification,
     check_notification_eligibility,
@@ -30,6 +38,13 @@ from backend.notifications import (
     dismiss_notification,
     get_notifications,
     snooze_notification,
+)
+from backend.notifications.formatter import format_notification_content
+from backend.notifications.multilingual import (
+    build_channel_payloads,
+    format_multilingual_notification,
+    render_channel_payload,
+    verify_translation_fidelity,
 )
 from backend.patient_language import generate_patient_care_plan
 from backend.provider_finder import find_providers, ProviderSearchQuery
@@ -40,6 +55,15 @@ from backend.task_orchestration.types import TaskCategory, TaskStatus
 
 # In-memory storage for active demo notifications to support interactive state transitions
 ACTIVE_NOTIFICATION_STORE: dict[str, Notification] = {}
+ACTIVE_TASK_STORE: dict[str, tuple[Reminder, Any]] = {}
+PATIENT_PREFERENCES_STORE: dict[str, str] = {
+    "SYNTH-PT-801": "ta",
+    "SYNTH-PT-101": "en",
+    "SYNTH-PT-202": "hi",
+    "SYNTH-PT-303": "te",
+    "SYNTH-PT-404": "kn",
+    "SYNTH-PT-505": "ml",
+}
 
 
 def get_available_cases() -> list[dict[str, Any]]:
@@ -51,6 +75,7 @@ def get_available_cases() -> list[dict[str, Any]]:
         "title": "Cardiology Absolute Follow-up (March 18, 2027)",
         "scenario": "Grounded Absolute Appointment & Notifications",
         "patient_id": "SYNTH-PT-801",
+        "preferred_language": PATIENT_PREFERENCES_STORE.get("SYNTH-PT-801", "ta"),
         "description": "Discharge instructions with explicit appointment: Follow up with Cardiology on March 18, 2027 at 10:30 AM.",
         "raw_text": (
             "Discharge Instructions:\n"
@@ -71,11 +96,13 @@ def get_available_cases() -> list[dict[str, Any]]:
         elif "conflicting" in key:
             safety_hint = "CONFLICT DETECTED"
 
+        pid = doc.patient_identifier or f"SYNTH-PT-{abs(hash(key)) % 900 + 100}"
         cases.append({
             "case_id": doc.scenario_key,
             "title": doc.description,
             "scenario": doc.scenario_key.replace("_", " ").title(),
-            "patient_id": doc.patient_identifier,
+            "patient_id": pid,
+            "preferred_language": PATIENT_PREFERENCES_STORE.get(pid, "en"),
             "description": doc.description,
             "raw_text": doc.raw_text,
             "expected_safety": safety_hint,
@@ -87,7 +114,7 @@ def get_available_cases() -> list[dict[str, Any]]:
 def orchestrate_pipeline(
     case_id: Optional[str] = None,
     raw_text: Optional[str] = None,
-    language: str = "en",
+    language: Optional[str] = None,
 ) -> dict[str, Any]:
     """Execute the end-to-end CAREBRIDGE pipeline and return unified UI state."""
     # Resolve input text
@@ -97,14 +124,15 @@ def orchestrate_pipeline(
         case_label = "Custom User Input"
         patient_id = "SYNTH-PT-CUSTOM"
     elif case_id:
-        cases = {c["case_id"]: c for c in get_available_cases()}
-        selected_case = cases.get(case_id)
+        cases_by_id = {c["case_id"]: c for c in get_available_cases()}
+        cases_by_patient = {c["patient_id"]: c for c in get_available_cases() if c.get("patient_id")}
+        selected_case = cases_by_id.get(case_id) or cases_by_patient.get(case_id)
         if selected_case:
             text_to_process = selected_case["raw_text"]
             case_label = selected_case["title"]
             patient_id = selected_case["patient_id"]
         else:
-            first = cases["case_absolute_cardiology"]
+            first = cases_by_id.get("case_absolute_cardiology", get_available_cases()[0])
             text_to_process = first["raw_text"]
             case_label = first["title"]
             patient_id = first["patient_id"]
@@ -115,6 +143,23 @@ def orchestrate_pipeline(
         case_label = first["title"]
         patient_id = first["patient_id"]
 
+    # ── Language Resolution & Invariant Verification ──────────────────────────
+    req_lang = language.strip().lower() if (language and isinstance(language, str)) else None
+    if req_lang is not None:
+        if req_lang not in SUPPORTED_LANGUAGES:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unsupported language code '{language}'. Supported languages: {list(SUPPORTED_LANGUAGES.keys())}",
+            )
+        resolved_lang = req_lang
+        PATIENT_PREFERENCES_STORE[patient_id] = resolved_lang
+    else:
+        resolved_lang = PATIENT_PREFERENCES_STORE.get(patient_id)
+        if not resolved_lang and selected_case:
+            resolved_lang = selected_case.get("preferred_language")
+        if not resolved_lang or resolved_lang not in SUPPORTED_LANGUAGES:
+            resolved_lang = "en"
+
     # ── Phase 4 & Phase 3C: Document Intelligence & Safety Validation ─────────
     doc_result = run_document_intelligence_pipeline(text_to_process)
     val_report = doc_result.validation_report
@@ -124,7 +169,7 @@ def orchestrate_pipeline(
 
     # ── Phase 6: Patient-Friendly Language & Spanish Fidelity ─────────────────
     from backend.patient_language.types import LanguageCode
-    target_lang = LanguageCode.ES if language.lower() == "es" else None
+    target_lang = LanguageCode.ES if resolved_lang == "es" else None
     care_plan = generate_patient_care_plan(care_journey, target_language=target_lang)
 
     # ── Phase 6.5 & 6.6: Reminders & Notifications ────────────────────────────
@@ -138,7 +183,7 @@ def orchestrate_pipeline(
                 rem = create_reminder(
                     task=task,
                     offset_minutes=ReminderPreset.ONE_DAY.value,
-                    language=language,
+                    language=resolved_lang,
                 )
                 reminders.append(rem)
 
@@ -147,10 +192,13 @@ def orchestrate_pipeline(
                     notif = create_notification(
                         reminder=rem,
                         task=task,
-                        language=language,
+                        language=resolved_lang,
+                        patient_id=patient_id,
+                        channel=NotificationChannel.IN_APP,
                     )
                     notifications.append(notif)
                     ACTIVE_NOTIFICATION_STORE[notif.notification_id] = notif
+                    ACTIVE_TASK_STORE[notif.notification_id] = (rem, task)
             except Exception:
                 pass  # Graceful fallback without crashing
 
@@ -258,12 +306,23 @@ def orchestrate_pipeline(
             "specialty": t.clinical_metadata.get("specialty"),
         })
 
+    # Calculate overall translation status
+    overall_trans_status = "VERIFIED"
+    if any(getattr(n, "translation_status", "VERIFIED") == "REVIEW_REQUIRED" for n in notifications):
+        overall_trans_status = "REVIEW_REQUIRED"
+
     # Construct complete unified state
     return {
+        "language": {
+            "requested": req_lang or "en",
+            "resolved": resolved_lang,
+            "translation_status": overall_trans_status,
+        },
         "case_info": {
             "case_id": case_id or "case_absolute_cardiology",
             "title": case_label,
             "patient_identifier": patient_id,
+            "preferred_language": resolved_lang,
         },
         "raw_text": text_to_process,
         "sections": sections,
@@ -330,3 +389,112 @@ def update_notification_state(
 
     center = get_notifications(list(ACTIVE_NOTIFICATION_STORE.values()))
     return center.model_dump(mode="json")
+
+
+def update_patient_language(patient_id: str, new_language: str) -> dict[str, Any]:
+    """Update patient preferred language and re-translate all scheduled notifications.
+
+    Guarantees:
+    - Validates target language code against SUPPORTED_LANGUAGES.
+    - Persists patient language preference.
+    - Re-translates future and SCHEDULED notifications for this patient.
+    - Preserves notification history: NEVER modifies TRIGGERED, ACKNOWLEDGED, or DISMISSED items.
+    """
+    lang = new_language.strip().lower() if new_language else ""
+    if lang not in SUPPORTED_LANGUAGES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unsupported language code '{new_language}'. Supported languages: {list(SUPPORTED_LANGUAGES.keys())}",
+        )
+
+    PATIENT_PREFERENCES_STORE[patient_id] = lang
+    updated_count = 0
+
+    for notif in ACTIVE_NOTIFICATION_STORE.values():
+        if notif.patient_id == patient_id and notif.status == NotificationStatus.SCHEDULED:
+            pair = ACTIVE_TASK_STORE.get(notif.notification_id)
+            if pair:
+                rem, task = pair
+            else:
+                from backend.document_intelligence.types import EvidenceSpan
+                from backend.task_orchestration.types import (
+                    OrchestratedTask,
+                    ParsedTimeframe,
+                    TimeframeType,
+                )
+                task = OrchestratedTask(
+                    task_id=notif.task_id,
+                    source_item_id=notif.task_id,
+                    task_category=TaskCategory.FOLLOW_UP,
+                    title=notif.title,
+                    description=notif.body,
+                    status=TaskStatus.SCHEDULED,
+                    timeframe=ParsedTimeframe(timeframe_type=TimeframeType.ABSOLUTE_DATE, raw_text=notif.scheduled_for),
+                    evidence=notif.source_evidence,
+                    patient_releasable=True,
+                    requires_human_review=False,
+                    clinical_metadata={"specialty": notif.metadata.get("specialty", "")},
+                )
+                rem = Reminder(
+                    reminder_id=notif.reminder_id,
+                    task_id=notif.task_id,
+                    category=TaskCategory.FOLLOW_UP,
+                    event_time=notif.metadata.get("event_time", notif.scheduled_for),
+                    scheduled_for=notif.scheduled_for,
+                    offset_minutes=notif.metadata.get("offset_minutes", 1440),
+                    status=ReminderStatus.SCHEDULED,
+                    patient_releasable=True,
+                    source_evidence=notif.source_evidence,
+                )
+
+            if lang in ("en", "es"):
+                raw_title, raw_body = format_notification_content(
+                    rem, task, language=lang, notification_type=notif.notification_type
+                )
+                trans_status = "VERIFIED"
+            else:
+                raw_title, raw_body, trans_status = format_multilingual_notification(
+                    task=task,
+                    reminder=rem,
+                    language=lang,
+                    notification_type=notif.notification_type,
+                )
+
+            title, body = render_channel_payload(
+                title=raw_title,
+                body=raw_body,
+                channel=notif.channel,
+                language=lang,
+            )
+
+            is_verified, trans_status_ver, trans_notes = verify_translation_fidelity(
+                title=title,
+                body=body,
+                task=task,
+                reminder=rem,
+                language=lang,
+            )
+            final_trans_status = trans_status_ver if not is_verified else trans_status
+
+            notif.title = title
+            notif.body = body
+            notif.language = lang
+            notif.translation_status = final_trans_status
+            notif.translation_verification_notes = trans_notes
+            if not is_verified:
+                notif.patient_releasable = False
+            notif.metadata["channel_payloads"] = build_channel_payloads(raw_title, raw_body, language=lang)
+            updated_count += 1
+
+    patient_notifs = [
+        n.model_dump(mode="json")
+        for n in ACTIVE_NOTIFICATION_STORE.values()
+        if n.patient_id == patient_id
+    ]
+    return {
+        "patient_id": patient_id,
+        "preferred_language": lang,
+        "language_name": SUPPORTED_LANGUAGES.get(lang, lang),
+        "updated_notifications_count": updated_count,
+        "notifications": patient_notifs,
+    }

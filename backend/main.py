@@ -89,6 +89,7 @@ from backend.api_orchestrator import (
     orchestrate_pipeline,
     search_providers_endpoint,
     update_notification_state,
+    update_patient_language,
 )
 
 
@@ -103,8 +104,17 @@ def orchestrate_endpoint(req: dict[str, Any]) -> dict[str, Any]:
     """Execute end-to-end clinical intelligence pipeline and return full UI state."""
     case_id = req.get("case_id")
     raw_text = req.get("raw_text")
-    language = req.get("language", "en")
+    language = req.get("language")
     return orchestrate_pipeline(case_id=case_id, raw_text=raw_text, language=language)
+
+
+@app.patch("/api/v1/patients/{patient_id}/language")
+def update_patient_language_endpoint(patient_id: str, req: dict[str, Any]) -> dict[str, Any]:
+    """Update patient preferred language and re-translate scheduled notifications."""
+    preferred_language = req.get("preferred_language") or req.get("language")
+    if not preferred_language or not isinstance(preferred_language, str):
+        raise HTTPException(status_code=422, detail="Field 'preferred_language' is required.")
+    return update_patient_language(patient_id=patient_id, new_language=preferred_language)
 
 
 @app.post("/api/v1/providers/search")

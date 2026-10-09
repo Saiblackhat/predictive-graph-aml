@@ -21,6 +21,16 @@ class LanguageCode(str, Enum):
 
     EN = "en"
     ES = "es"
+    HI = "hi"
+    TA = "ta"
+    TE = "te"
+    KN = "kn"
+    ML = "ml"
+    BN = "bn"
+    MR = "mr"
+    GU = "gu"
+    PA = "pa"
+    OR = "or"
 
 
 class TransformationStatus(str, Enum):

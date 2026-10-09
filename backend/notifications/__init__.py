@@ -4,10 +4,13 @@ from backend.notifications.types import (
     Notification,
     NotificationAction,
     NotificationCenterState,
+    NotificationChannel,
     NotificationPriority,
     NotificationStatus,
     NotificationSummary,
     NotificationType,
+    SUPPORTED_LANGUAGES,
+    TranslationStatus,
 )
 from backend.notifications.eligibility import (
     NotificationEligibilityResult,
@@ -36,6 +39,9 @@ __all__ = [
     "NotificationStatus",
     "NotificationSummary",
     "NotificationType",
+    "NotificationChannel",
+    "TranslationStatus",
+    "SUPPORTED_LANGUAGES",
     "NotificationEligibilityResult",
     "check_notification_eligibility",
     "format_notification_content",
