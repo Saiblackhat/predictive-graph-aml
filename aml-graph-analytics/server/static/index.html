@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ledger Trace — AML Predictive Graph Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"IBM Plex Sans"', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'monospace'],
+          },
+          colors: {
+            trace: {
+              bg: '#0F172A',
+              card: '#1E293B',
+              border: '#334155',
+              accent: '#3B82F6',
+              critical: '#EF4444',
+              high: '#F97316',
+              med: '#FBBF24',
+              low: '#10B981',
+              anomaly: '#8B5CF6'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'IBM Plex Sans', sans-serif; }
+    code, pre { font-family: 'IBM Plex Mono', monospace; }
+    .hairline-border { border-width: 1px; border-color: #334155; }
+    .badge-critical { background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid #EF4444; }
+    .badge-high { background: rgba(249, 115, 22, 0.15); color: #F97316; border: 1px solid #F97316; }
+    .badge-anomaly { background: rgba(139, 92, 246, 0.15); color: #A78BFA; border: 1px solid #8B5CF6; }
+    #network-canvas { width: 100%; height: 500px; background: #0B0F19; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-[#0B0F19] text-[#F1F5F9] min-h-screen">
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-[#1E293B] bg-[#0F172A]/80 backdrop-blur px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center space-x-3">
+      <div class="w-7 h-7 bg-blue-600 rounded flex items-center justify-center font-bold text-sm tracking-wider font-mono">LT</div>
+      <div>
+        <h1 class="text-sm font-semibold tracking-wide flex items-center gap-2">
+          LEDGER TRACE <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono">AML GRAPH AI</span>
+        </h1>
+        <p class="text-[11px] text-slate-400 font-mono">FINANCIAL INTELLIGENCE & CRIME SURVEILLANCE</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <div class="relative">
+        <input id="search-input" type="text" placeholder="Search account (e.g. ACC_LAUND)..." 
+               class="bg-[#1E293B] border border-[#334155] rounded text-xs px-3 py-1.5 w-64 focus:outline-none focus:border-blue-500 font-mono">
+        <div id="search-dropdown" class="absolute left-0 mt-1 w-full bg-[#1E293B] border border-[#334155] rounded shadow-xl hidden z-50 max-h-48 overflow-y-auto"></div>
+      </div>
+      <button onclick="toggleExportMenu()" class="text-xs px-3 py-1.5 border border-[#334155] rounded hover:bg-[#1E293B] flex items-center gap-1.5 font-mono">
+        📥 Export Flagged
+      </button>
+      <div class="flex items-center gap-2 border-l border-[#334155] pl-4">
+        <span class="text-xs text-slate-300 font-mono" id="user-role-badge">Analyst (Demo)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Multi-Tab Layout -->
+  <main class="p-6 max-w-7xl mx-auto space-y-6">
+    <!-- View Switcher -->
+    <div class="flex items-center gap-2 border-b border-[#1E293B] pb-3 text-sm font-mono">
+      <button onclick="switchTab('investigation')" id="tab-btn-investigation" class="px-4 py-1.5 rounded bg-blue-600 text-white font-medium">🎯 Investigation & Graph</button>
+      <button onclick="switchTab('alerts')" id="tab-btn-alerts" class="px-4 py-1.5 rounded text-slate-400 hover:text-white">🚨 Alert Queue</button>
+      <button onclick="switchTab('cases')" id="tab-btn-cases" class="px-4 py-1.5 rounded text-slate-400 hover:text-white">📁 Case Management</button>
+      <button onclick="switchTab('monitoring')" id="tab-btn-monitoring" class="px-4 py-1.5 rounded text-slate-400 hover:text-white">📈 Model Monitoring</button>
+    </div>
+
+    <!-- TAB 1: INVESTIGATION & GRAPH -->
+    <div id="tab-investigation" class="space-y-6">
+      <!-- Time Slider Replay -->
+      <div class="bg-[#1E293B] p-4 rounded border border-[#334155] flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <button id="play-pause-btn" onclick="togglePlayReplay()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-xs font-mono rounded flex items-center gap-1">
+            ▶ Play Ring Formation
+          </button>
+          <span class="text-xs text-slate-400 font-mono">Simulated Window: <span id="current-date-label" class="text-white font-bold">Day 90 / 90</span></span>
+        </div>
+        <div class="flex-1 max-w-md flex items-center gap-3">
+          <span class="text-xs text-slate-400 font-mono">Day 1</span>
+          <input id="time-slider" type="range" min="1" max="90" value="90" class="w-full accent-blue-500 cursor-pointer" oninput="updateTimeSlider(this.value)">
+          <span class="text-xs text-slate-400 font-mono">Day 90</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Interactive Graph View (2 cols) -->
+        <div class="lg:col-span-2 bg-[#1E293B] p-4 rounded border border-[#334155] space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">Interactive Ego-Network Neighborhood</h2>
+            <div class="flex items-center gap-2 text-xs font-mono">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span> Critical</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span> High</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block"></span> Anomaly</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Normal</span>
+            </div>
+          </div>
+          <div id="network-canvas"></div>
+          <div class="flex items-center justify-between text-xs text-slate-400 font-mono pt-1">
+            <span>Scroll to zoom · Drag nodes to inspect flow pathways</span>
+            <div class="flex gap-2">
+              <button onclick="expandHops(1)" class="px-2 py-1 bg-slate-800 border border-slate-700 rounded hover:bg-slate-700">1 Hop</button>
+              <button onclick="expandHops(2)" class="px-2 py-1 bg-slate-800 border border-slate-700 rounded hover:bg-slate-700">2 Hops</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Account Dossier & SHAP Bar list (1 col) -->
+        <div class="bg-[#1E293B] p-5 rounded border border-[#334155] space-y-5">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono text-slate-400">TARGET ACCOUNT</span>
+              <span id="target-tier-badge" class="text-xs font-mono font-bold px-2 py-0.5 rounded badge-critical">CRITICAL</span>
+            </div>
+            <h3 id="target-account-id" class="text-lg font-bold font-mono text-white mt-1">ACC_LAUND_0000</h3>
+            <p id="target-pattern" class="text-xs text-purple-400 font-mono mt-0.5">Typology: CIRCULAR TRANSFERS</p>
+          </div>
+
+          <div class="bg-slate-900/60 p-3 rounded border border-slate-800">
+            <div class="text-[11px] text-slate-400 font-mono">CALIBRATED AML RISK SCORE</div>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span id="target-score-num" class="text-3xl font-extrabold font-mono text-red-500">98.4</span>
+              <span class="text-xs text-slate-500 font-mono">/ 100</span>
+            </div>
+          </div>
+
+          <!-- SHAP Explanations -->
+          <div class="space-y-3">
+            <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">SHAP Contributing Factors</h4>
+            <div id="shap-reasons-container" class="space-y-2 text-xs font-mono">
+              <div class="text-slate-500">Select an account to compute SHAP contributions...</div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="pt-2 border-t border-[#334155] space-y-2">
+            <button onclick="createCaseFromCurrent()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded text-xs font-mono font-semibold transition">
+              + Open Compliance Case
+            </button>
+            <div class="flex gap-2">
+              <button onclick="submitFeedback('CONFIRMED_SUSPICIOUS')" class="flex-1 py-1.5 bg-red-950/60 border border-red-800 text-red-400 rounded text-xs font-mono hover:bg-red-900/60">
+                Confirm Illicit
+              </button>
+              <button onclick="submitFeedback('NOT_SUSPICIOUS')" class="flex-1 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded text-xs font-mono hover:bg-slate-700">
+                Mark False Positive
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: ALERT QUEUE -->
+    <div id="tab-alerts" class="space-y-4 hidden">
+      <div class="bg-[#1E293B] p-4 rounded border border-[#334155] flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-bold font-mono">Alert Queue (Ranked by Risk × Total Volume)</h2>
+          <p class="text-xs text-slate-400 font-mono">Highest potential exposure entities surfaced first</p>
+        </div>
+        <div class="flex gap-2">
+          <a href="/api/export/flagged.csv" class="text-xs px-3 py-1.5 bg-slate-800 border border-slate-700 rounded hover:bg-slate-700 font-mono">Download CSV</a>
+          <a href="/api/export/flagged.xlsx" class="text-xs px-3 py-1.5 bg-slate-800 border border-slate-700 rounded hover:bg-slate-700 font-mono">Download Excel</a>
+        </div>
+      </div>
+      <div class="bg-[#1E293B] rounded border border-[#334155] overflow-x-auto">
+        <table class="w-full text-xs font-mono text-left">
+          <thead class="bg-slate-900/80 text-slate-400 border-b border-[#334155]">
+            <tr>
+              <th class="p-3">Account ID</th>
+              <th class="p-3">Risk Score</th>
+              <th class="p-3">Risk Tier</th>
+              <th class="p-3">Typology</th>
+              <th class="p-3">Severity Index</th>
+              <th class="p-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="alerts-table-body" class="divide-y divide-[#334155]">
+            <tr><td colspan="6" class="p-4 text-center text-slate-500">Loading live alerts...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: CASE MANAGEMENT -->
+    <div id="tab-cases" class="space-y-4 hidden">
+      <div class="bg-[#1E293B] p-4 rounded border border-[#334155] flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-bold font-mono">Case Dossiers & Audit Trail</h2>
+          <p class="text-xs text-slate-400 font-mono">Formal FinCEN SAR workflow and analyst annotations</p>
+        </div>
+      </div>
+      <div class="bg-[#1E293B] rounded border border-[#334155] overflow-x-auto">
+        <table class="w-full text-xs font-mono text-left">
+          <thead class="bg-slate-900/80 text-slate-400 border-b border-[#334155]">
+            <tr>
+              <th class="p-3">Case ID</th>
+              <th class="p-3">Account</th>
+              <th class="p-3">Status</th>
+              <th class="p-3">Priority</th>
+              <th class="p-3">Assigned</th>
+              <th class="p-3">Created</th>
+              <th class="p-3 text-right">SAR Report</th>
+            </tr>
+          </thead>
+          <tbody id="cases-table-body" class="divide-y divide-[#334155]">
+            <tr><td colspan="7" class="p-4 text-center text-slate-500">No active cases opened yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 4: MODEL MONITORING -->
+    <div id="tab-monitoring" class="space-y-6 hidden">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-[#1E293B] p-4 rounded border border-[#334155]">
+          <span class="text-xs text-slate-400 font-mono">POPULATION STABILITY (PSI)</span>
+          <div class="text-2xl font-bold font-mono text-emerald-400 mt-1">0.042</div>
+          <span class="text-[11px] text-slate-400 font-mono">Drift Status: <b class="text-emerald-400">STABLE (&lt; 0.1)</b></span>
+        </div>
+        <div class="bg-[#1E293B] p-4 rounded border border-[#334155]">
+          <span class="text-xs text-slate-400 font-mono">XGBOOST PR-AUC</span>
+          <div class="text-2xl font-bold font-mono text-blue-400 mt-1">1.0000</div>
+          <span class="text-[11px] text-slate-400 font-mono">Held-Out Test Split</span>
+        </div>
+        <div class="bg-[#1E293B] p-4 rounded border border-[#334155]">
+          <span class="text-xs text-slate-400 font-mono">GRAPHSAGE / GCN F1</span>
+          <div class="text-2xl font-bold font-mono text-purple-400 mt-1">0.9774</div>
+          <span class="text-[11px] text-slate-400 font-mono">Node Classification</span>
+        </div>
+        <div class="bg-[#1E293B] p-4 rounded border border-[#334155]">
+          <span class="text-xs text-slate-400 font-mono">RULE BASELINE RECALL</span>
+          <div class="text-2xl font-bold font-mono text-amber-400 mt-1">72.00%</div>
+          <span class="text-[11px] text-slate-400 font-mono">Precision: 4.59%</span>
+        </div>
+      </div>
+
+      <div class="bg-[#1E293B] p-5 rounded border border-[#334155] space-y-4">
+        <h3 class="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">Model Architecture Benchmark Matrix</h3>
+        <table class="w-full text-xs font-mono text-left">
+          <thead class="bg-slate-900/80 text-slate-400 border-b border-[#334155]">
+            <tr>
+              <th class="p-3">Model Architecture</th>
+              <th class="p-3">Precision</th>
+              <th class="p-3">Recall</th>
+              <th class="p-3">F1 Score</th>
+              <th class="p-3">PR-AUC</th>
+            </tr>
+          </thead>
+          <tbody id="metrics-table-body" class="divide-y divide-[#334155]"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Application Logic -->
+  <script>
+    let currentAccount = "ACC_LAUND_0000";
+    let network = null;
+    let currentHops = 1;
+    let isPlaying = false;
+    let playInterval = null;
+
+    async function init() {
+      await loadAccountData(currentAccount);
+      loadAlerts();
+      loadCases();
+      loadMonitoring();
+      setupSearch();
+    }
+
+    function switchTab(tab) {
+      ['investigation', 'alerts', 'cases', 'monitoring'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        document.getElementById(`tab-btn-${t}`).className = 'px-4 py-1.5 rounded text-slate-400 hover:text-white';
+      });
+      document.getElementById(`tab-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${tab}`).className = 'px-4 py-1.5 rounded bg-blue-600 text-white font-medium';
+    }
+
+    async function loadAccountData(accId) {
+      currentAccount = accId;
+      document.getElementById('target-account-id').innerText = accId;
+
+      // 1. Fetch SHAP explanation
+      try {
+        const res = await fetch(`/api/accounts/${accId}/explanation`);
+        if (res.ok) {
+          const data = await res.json();
+          renderShap(data.top_contributions);
+        }
+      } catch (e) { console.error(e); }
+
+      // 2. Fetch Neighborhood Graph
+      try {
+        const gRes = await fetch(`/api/accounts/${accId}/neighborhood?hops=${currentHops}&max_nodes=35`);
+        if (gRes.ok) {
+          const gData = await gRes.json();
+          renderGraph(gData);
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    function renderShap(contribs) {
+      const container = document.getElementById('shap-reasons-container');
+      container.innerHTML = '';
+      if (!contribs || contribs.length === 0) {
+        container.innerHTML = '<div class="text-slate-500">No SHAP explanations available.</div>';
+        return;
+      }
+
+      contribs.forEach(c => {
+        const isPos = c.contribution > 0;
+        const color = isPos ? 'bg-red-500' : 'bg-emerald-500';
+        const width = Math.min(100, Math.max(15, Math.abs(c.contribution) * 80));
+
+        const item = document.createElement('div');
+        item.className = 'bg-slate-900/60 p-2.5 rounded border border-slate-800/80 space-y-1.5';
+        item.innerHTML = `
+          <div class="flex justify-between text-[11px]">
+            <span class="text-slate-300 font-medium">${c.plain_language}</span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div class="${color} h-full rounded-full" style="width: ${width}%"></div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function renderGraph(data) {
+      const container = document.getElementById('network-canvas');
+      const nodes = new vis.DataSet(data.nodes.map(n => {
+        let color = '#10B981';
+        if (n.risk_tier === 'CRITICAL') color = '#EF4444';
+        else if (n.risk_tier === 'HIGH') color = '#F97316';
+        else if (n.typology.includes('Unusual')) color = '#8B5CF6';
+
+        return {
+          id: n.id,
+          label: n.label,
+          color: color,
+          shape: 'dot',
+          size: n.is_focus ? 26 : 14,
+          font: { color: '#F1F5F9', face: 'IBM Plex Mono', size: 10 }
+        };
+      }));
+
+      const edges = new vis.DataSet(data.edges.map(e => ({
+        from: e.source,
+        to: e.target,
+        arrows: 'to',
+        color: { color: '#475569', opacity: 0.6 }
+      })));
+
+      const options = {
+        physics: { stabilization: false, barnesHut: { springLength: 85 } },
+        interaction: { hover: true, tooltipDelay: 200 }
+      };
+
+      if (network) network.destroy();
+      network = new vis.Network(container, { nodes, edges }, options);
+      network.on("click", function(params) {
+        if (params.nodes.length > 0) {
+          loadAccountData(params.nodes[0]);
+        }
+      });
+    }
+
+    async function loadAlerts() {
+      try {
+        const res = await fetch('/api/alerts?limit=25');
+        if (res.ok) {
+          const alerts = await res.json();
+          const tbody = document.getElementById('alerts-table-body');
+          tbody.innerHTML = '';
+          alerts.forEach(a => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-800/40 cursor-pointer';
+            tr.onclick = () => { switchTab('investigation'); loadAccountData(a.account_id); };
+            tr.innerHTML = `
+              <td class="p-3 font-bold text-blue-400">${a.display_id}</td>
+              <td class="p-3 font-extrabold text-red-400">${a.risk_score.toFixed(1)}</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded badge-critical">${a.risk_tier}</span></td>
+              <td class="p-3 text-slate-300">${a.typology}</td>
+              <td class="p-3 text-slate-400">$${Math.round(a.severity_index).toLocaleString()}</td>
+              <td class="p-3 text-right"><button class="px-2 py-1 bg-slate-800 rounded hover:bg-slate-700">Inspect</button></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    async function loadCases() {
+      try {
+        const res = await fetch('/api/cases');
+        if (res.ok) {
+          const cases = await res.json();
+          const tbody = document.getElementById('cases-table-body');
+          if (cases.length === 0) return;
+          tbody.innerHTML = '';
+          cases.forEach(c => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="p-3 font-bold">CASE-${c.id}</td>
+              <td class="p-3 font-mono text-blue-400">${c.account_id}</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-blue-900/40 text-blue-300">${c.status}</span></td>
+              <td class="p-3 text-amber-400">${c.priority}</td>
+              <td class="p-3">${c.assigned_to}</td>
+              <td class="p-3 text-slate-400">${c.created_at.slice(0, 10)}</td>
+              <td class="p-3 text-right">
+                <button onclick="downloadSar(${c.id})" class="px-2.5 py-1 bg-red-600/80 hover:bg-red-500 rounded text-[11px] font-bold">PDF SAR</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    async function loadMonitoring() {
+      try {
+        const res = await fetch('/api/monitoring/metrics');
+        if (res.ok) {
+          const m = await res.json();
+          const tbody = document.getElementById('metrics-table-body');
+          tbody.innerHTML = '';
+          m.model_comparison.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="p-3 font-bold text-slate-200">${row.model}</td>
+              <td class="p-3">${(row.precision * 100).toFixed(2)}%</td>
+              <td class="p-3 text-emerald-400 font-semibold">${(row.recall * 100).toFixed(2)}%</td>
+              <td class="p-3">${row.f1 ? (row.f1 * 100).toFixed(2) + '%' : 'N/A'}</td>
+              <td class="p-3">${row.pr_auc ? (row.pr_auc * 100).toFixed(2) + '%' : 'N/A'}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    function setupSearch() {
+      const input = document.getElementById('search-input');
+      const drop = document.getElementById('search-dropdown');
+      input.addEventListener('input', async (e) => {
+        const q = e.target.value.trim();
+        if (q.length < 2) { drop.classList.add('hidden'); return; }
+        const res = await fetch(`/api/accounts/search?query=${encodeURIComponent(q)}`);
+        if (res.ok) {
+          const items = await res.json();
+          if (items.length === 0) { drop.classList.add('hidden'); return; }
+          drop.innerHTML = '';
+          items.forEach(it => {
+            const div = document.createElement('div');
+            div.className = 'p-2 hover:bg-slate-700 cursor-pointer text-xs font-mono flex justify-between';
+            div.innerHTML = `<span>${it.display_id}</span><span class="text-red-400">${it.risk_score}</span>`;
+            div.onclick = () => { loadAccountData(it.account_id); drop.classList.add('hidden'); };
+            drop.appendChild(div);
+          });
+          drop.classList.remove('hidden');
+        }
+      });
+    }
+
+    async function createCaseFromCurrent() {
+      const res = await fetch('/api/cases', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ account_id: currentAccount, title: `Suspicious activity review for ${currentAccount}`, priority: 'HIGH' })
+      });
+      if (res.ok) {
+        alert(`Case registered for ${currentAccount}. Switch to 'Case Management' to inspect.`);
+        loadCases();
+      }
+    }
+
+    async function submitFeedback(label) {
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ account_id: currentAccount, label: label, comments: 'Analyst triage submission' })
+      });
+      alert(`Feedback recorded: ${label}`);
+    }
+
+    function downloadSar(caseId) {
+      window.open(`/api/cases/${caseId}/sar`, '_blank');
+    }
+
+    function expandHops(hops) {
+      currentHops = hops;
+      loadAccountData(currentAccount);
+    }
+
+    function updateTimeSlider(val) {
+      document.getElementById('current-date-label').innerText = `Day ${val} / 90`;
+    }
+
+    function togglePlayReplay() {
+      const btn = document.getElementById('play-pause-btn');
+      const slider = document.getElementById('time-slider');
+      if (isPlaying) {
+        clearInterval(playInterval);
+        isPlaying = false;
+        btn.innerText = '▶ Play Ring Formation';
+      } else {
+        isPlaying = true;
+        btn.innerText = '⏸ Pause Replay';
+        slider.value = 1;
+        playInterval = setInterval(() => {
+          let curr = parseInt(slider.value);
+          if (curr >= 90) {
+            clearInterval(playInterval);
+            isPlaying = false;
+            btn.innerText = '▶ Play Ring Formation';
+          } else {
+            slider.value = curr + 5;
+            updateTimeSlider(slider.value);
+          }
+        }, 400);
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

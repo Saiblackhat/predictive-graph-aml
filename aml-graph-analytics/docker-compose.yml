@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  ledger-trace-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ledger_trace_aml
+    restart: always
+    ports:
+      - "8000:8000"
+      - "8501:8501"
+    environment:
+      - ENV=production
+      - HOST=0.0.0.0
+      - PORT=8000
+    volumes:
+      - aml_data_volume:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/monitoring/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  aml_data_volume:
+    driver: local
