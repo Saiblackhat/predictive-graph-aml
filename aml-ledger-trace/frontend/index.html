@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ledger Trace — AML Predictive Graph Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #EDF1F4;
+      --surface: #FBFCFD;
+      --ink: #14263B;
+      --muted: #5A6A7A;
+      --line: #CBD5DC;
+      --c-circular: #C8372D;
+      --c-fan: #B4691A;
+      --c-layering: #5B4FC4;
+      --c-structuring: #A23B72;
+      --c-none: #9AA8B5;
+      --c-unusual: #7C6F9E;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0E1823;
+        --surface: #152331;
+        --ink: #E4ECF2;
+        --muted: #93A4B4;
+        --line: #2A3C4D;
+        --c-circular: #E04E44;
+        --c-fan: #D1822E;
+        --c-layering: #7A6EE6;
+        --c-structuring: #C04D8C;
+        --c-none: #B2C0CD;
+        --c-unusual: #9F91C7;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      line-height: 1.45;
+      min-height: 100vh;
+    }
+    code, pre, .mono { font-family: 'IBM Plex Mono', monospace; }
+    
+    /* Layout */
+    .app-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-logo {
+      width: 22px;
+      height: 22px;
+      background: var(--ink);
+      color: var(--surface);
+      font-weight: 700;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+    .brand-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-left: 6px;
+    }
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .select-pill {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      outline: none;
+    }
+    
+    /* Stats Strip (4 numbers separated by hairlines) */
+    .stats-strip {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .stat-cell {
+      padding: 12px 24px;
+      border-right: 1px solid var(--line);
+    }
+    .stat-cell:last-child { border-right: none; }
+    .stat-label {
+      font-size: 11px;
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      font-family: 'IBM Plex Mono', monospace;
+      margin-top: 2px;
+    }
+
+    /* Pattern Filter Bar */
+    .filter-bar {
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--line);
+      background: var(--bg);
+    }
+    .filter-title {
+      font-size: 11px;
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--muted);
+      margin-right: 4px;
+      text-transform: uppercase;
+    }
+    .chip {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 11px;
+      font-family: 'IBM Plex Mono', monospace;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .chip[aria-pressed="true"] {
+      border-color: var(--ink);
+      font-weight: 600;
+      background: var(--bg);
+    }
+    .chip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+
+    /* Main Workspace */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      min-height: calc(100vh - 150px);
+    }
+    
+    /* Graph Container with Dot-Grid */
+    .graph-pane {
+      position: relative;
+      background-color: var(--bg);
+      background-image: radial-gradient(var(--line) 1px, transparent 1px);
+      background-size: 16px 16px;
+      border-right: 1px solid var(--line);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .graph-svg-wrapper {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      min-height: 520px;
+    }
+    svg.graph-svg {
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Account Panel (Sticky) */
+    .account-panel {
+      background: var(--surface);
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .account-title {
+      font-size: 18px;
+      font-weight: 600;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .typology-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid currentColor;
+      text-transform: uppercase;
+    }
+
+    /* Big Risk Score */
+    .score-card {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 16px;
+    }
+    .score-label {
+      font-size: 11px;
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .score-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .score-num {
+      font-size: 36px;
+      font-weight: 700;
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--c-circular);
+    }
+    .score-denom {
+      font-size: 13px;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .progress-bar-bg {
+      background: var(--line);
+      height: 4px;
+      border-radius: 2px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--c-circular);
+      border-radius: 2px;
+    }
+
+    /* SHAP reasons */
+    .shap-section-title {
+      font-size: 11px;
+      font-family: 'IBM Plex Mono', monospace;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .shap-item {
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .shap-item-text {
+      color: var(--ink);
+    }
+    .shap-bar {
+      height: 3px;
+      background: var(--c-circular);
+      margin-top: 6px;
+      border-radius: 2px;
+    }
+
+    /* Bottom Tables / Comparison */
+    .table-section {
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+      padding: 20px 24px;
+    }
+    .table-header {
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'IBM Plex Mono', monospace;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    table.data-table th, table.data-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+    table.data-table tr:hover td {
+      background: var(--bg);
+      cursor: pointer;
+    }
+    
+    /* Animated dashed strokes for laundering flow edges */
+    @keyframes flowDashes {
+      from { stroke-dashoffset: 16; }
+      to { stroke-dashoffset: 0; }
+    }
+    .flow-flagged {
+      stroke-dasharray: 4 4;
+      animation: flowDashes 1s linear infinite;
+    }
+    .dimmed { opacity: 0.12 !important; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-logo">LT</div>
+      <div>
+        <span class="brand-title">Ledger Trace</span>
+        <span class="brand-sub">Predictive AML Graph Analytics</span>
+      </div>
+    </div>
+    <div class="header-controls">
+      <label for="model-selector" class="mono text-[11px] text-muted" style="color:var(--muted)">MODEL:</label>
+      <select id="model-selector" class="select-pill" onchange="changeModel(this.value)">
+        <option value="xgboost">XGBoost (Cost-Weighted)</option>
+        <option value="gnn">GraphSAGE / GCN (PyTorch)</option>
+        <option value="rules">Rule-Based Heuristic</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- Stats Strip (4 numbers separated by hairlines) -->
+  <section class="stats-strip">
+    <div class="stat-cell">
+      <div class="stat-label">Total Accounts</div>
+      <div id="stat-total-accounts" class="stat-value">5,250</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Flagged Accounts</div>
+      <div id="stat-flagged-accounts" class="stat-value" style="color:var(--c-circular)">250</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Total Volume Transacted</div>
+      <div id="stat-total-volume" class="stat-value">₹3,97,62,433</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Graph Density</div>
+      <div id="stat-graph-density" class="stat-value">0.001778</div>
+    </div>
+  </section>
+
+  <!-- Pattern Filter Bar -->
+  <section class="filter-bar" role="toolbar" aria-label="Typology Filter">
+    <span class="filter-title">Filter Pattern:</span>
+    <button class="chip" aria-pressed="true" onclick="setPattern('ALL')">All</button>
+    <button class="chip" aria-pressed="false" onclick="setPattern('CIRCULAR')">
+      <span class="chip-dot" style="background:var(--c-circular)"></span> Circular
+    </button>
+    <button class="chip" aria-pressed="false" onclick="setPattern('FAN_IN_FAN_OUT')">
+      <span class="chip-dot" style="background:var(--c-fan)"></span> Fan-in / Fan-out
+    </button>
+    <button class="chip" aria-pressed="false" onclick="setPattern('LAYERING')">
+      <span class="chip-dot" style="background:var(--c-layering)"></span> Layering
+    </button>
+    <button class="chip" aria-pressed="false" onclick="setPattern('STRUCTURING')">
+      <span class="chip-dot" style="background:var(--c-structuring)"></span> Structuring
+    </button>
+    <button class="chip" aria-pressed="false" onclick="setPattern('UNUSUAL')">
+      <span class="chip-dot" style="background:var(--c-unusual)"></span> Unusual (Anomaly)
+    </button>
+  </section>
+
+  <!-- Main Graph Workspace & Dossier -->
+  <main class="workspace">
+    <!-- SVG Graph Pane -->
+    <div class="graph-pane">
+      <div class="graph-svg-wrapper">
+        <svg id="network-svg" class="graph-svg" viewBox="0 0 800 520">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="16" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--muted)" opacity="0.6"/>
+            </marker>
+            <marker id="arrow-flagged" viewBox="0 0 10 10" refX="16" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--c-circular)"/>
+            </marker>
+          </defs>
+          <g id="edges-group"></g>
+          <g id="nodes-group"></g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Account Panel (Sticky) -->
+    <aside class="account-panel" aria-live="polite">
+      <div class="panel-header">
+        <div>
+          <div style="font-size:11px; color:var(--muted); font-family:'IBM Plex Mono', monospace;">SUBJECT ACCOUNT</div>
+          <div id="panel-account-id" class="account-title">ACC_LAUND_0000</div>
+        </div>
+        <div id="panel-typology-badge" class="typology-tag" style="color:var(--c-circular)">CIRCULAR</div>
+      </div>
+
+      <div class="score-card">
+        <div class="score-label">AML Risk Score</div>
+        <div class="score-row">
+          <span id="panel-score-val" class="score-num">94.2</span>
+          <span class="score-denom">/ 100</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div id="panel-score-bar" class="progress-bar-fill" style="width: 94%;"></div>
+        </div>
+      </div>
+
+      <!-- Plain Language SHAP Contributing Reasons -->
+      <div>
+        <div class="shap-section-title">Explainable Model Drivers (SHAP)</div>
+        <div id="shap-list">
+          <div class="shap-item">
+            <div class="shap-item-text">Participates in directed closed cycle of 4 accounts (round-tripping): raised risk (+0.54)</div>
+            <div class="shap-bar" style="width: 85%;"></div>
+          </div>
+          <div class="shap-item">
+            <div class="shap-item-text">High graph reciprocity and cycle membership: raised risk (+0.28)</div>
+            <div class="shap-bar" style="width: 55%;"></div>
+          </div>
+          <div class="shap-item">
+            <div class="shap-item-text">Minimal capital dissipation across hops: raised risk (+0.18)</div>
+            <div class="shap-bar" style="width: 35%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <button style="background:var(--ink); color:var(--surface); border:none; border-radius:4px; padding:10px; font-family:'IBM Plex Mono', monospace; font-size:12px; cursor:pointer;" onclick="alert('Account marked for formal compliance investigation review.')">
+        Mark for Review
+      </button>
+    </aside>
+  </main>
+
+  <!-- Risk Table & Model Comparison Section -->
+  <section class="table-section">
+    <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px;">
+      <!-- Top Flagged Accounts Table -->
+      <div>
+        <div class="table-header">Top Flagged Accounts</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Account ID</th>
+              <th>Pattern</th>
+              <th>Risk Score</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="risk-table-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Model Performance Comparison -->
+      <div>
+        <div class="table-header">Model Performance (PR-AUC & Recall)</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Recall</th>
+              <th>Precision</th>
+              <th>PR-AUC</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>XGBoost (Selected)</b></td>
+              <td style="color:var(--c-circular)"><b>100.0%</b></td>
+              <td>100.0%</td>
+              <td>1.0000</td>
+            </tr>
+            <tr>
+              <td>Random Forest</td>
+              <td>100.0%</td>
+              <td>100.0%</td>
+              <td>1.0000</td>
+            </tr>
+            <tr>
+              <td>GraphSAGE / GCN</td>
+              <td>97.0%</td>
+              <td>98.5%</td>
+              <td>0.9920</td>
+            </tr>
+            <tr>
+              <td>Isolation Forest</td>
+              <td>85.0%</td>
+              <td>88.0%</td>
+              <td>0.9100</td>
+            </tr>
+            <tr>
+              <td style="color:var(--muted)">Rule Baseline</td>
+              <td style="color:var(--muted)">72.0%</td>
+              <td style="color:var(--muted)">4.59%</td>
+              <td style="color:var(--muted)">N/A</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    let activePattern = 'ALL';
+    let graphData = { nodes: [], edges: [] };
+    let accountsList = [];
+
+    async function init() {
+      await loadAccounts();
+      await loadNetwork();
+    }
+
+    async function loadAccounts() {
+      try {
+        const res = await fetch('/api/accounts?limit=15');
+        if (res.ok) {
+          accountsList = await res.json();
+          renderRiskTable(accountsList);
+          if (accountsList.length > 0) {
+            selectAccount(accountsList[0].account_id, accountsList[0].typology, accountsList[0].risk_score);
+          }
+        }
+      } catch (e) {
+        console.error("API error, using fallback state:", e);
+      }
+    }
+
+    async function loadNetwork() {
+      try {
+        const res = await fetch('/api/network?max_nodes=40');
+        if (res.ok) {
+          graphData = await res.json();
+          renderSvgGraph(graphData);
+        }
+      } catch (e) {
+        console.error("Network load error:", e);
+      }
+    }
+
+    function renderRiskTable(accs) {
+      const tbody = document.getElementById('risk-table-body');
+      tbody.innerHTML = '';
+      accs.forEach(a => {
+        const tr = document.createElement('tr');
+        tr.onclick = () => selectAccount(a.account_id, a.typology, a.risk_score);
+        tr.innerHTML = `
+          <td><b>${a.account_id}</b></td>
+          <td><span style="color:${getColor(a.typology)}">${a.typology}</span></td>
+          <td><b>${a.risk_score.toFixed(1)}</b></td>
+          <td><span style="color:var(--c-circular)">FLAGGED</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderSvgGraph(data) {
+      const nodesG = document.getElementById('nodes-group');
+      const edgesG = document.getElementById('edges-group');
+      nodesG.innerHTML = '';
+      edgesG.innerHTML = '';
+
+      // Simple layout coordinate mapper
+      const positions = {};
+      const cx = 400, cy = 260;
+      data.nodes.forEach((n, idx) => {
+        const angle = (idx / data.nodes.length) * 2 * Math.PI;
+        const radius = n.is_flagged ? 130 + (idx % 3) * 35 : 210 + (idx % 2) * 20;
+        positions[n.id] = {
+          x: cx + radius * Math.cos(angle),
+          y: cy + radius * Math.sin(angle)
+        };
+      });
+
+      // Render Edges
+      data.edges.forEach(e => {
+        const p1 = positions[e.source];
+        const p2 = positions[e.target];
+        if (p1 && p2) {
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', p1.x);
+          line.setAttribute('y1', p1.y);
+          line.setAttribute('x2', p2.x);
+          line.setAttribute('y2', p2.y);
+          line.setAttribute('stroke', e.is_flagged ? 'var(--c-circular)' : 'var(--line)');
+          line.setAttribute('stroke-width', e.is_flagged ? '1.5' : '1');
+          line.setAttribute('marker-end', e.is_flagged ? 'url(#arrow-flagged)' : 'url(#arrow)');
+          if (e.is_flagged) line.setAttribute('class', 'flow-flagged');
+          edgesG.appendChild(line);
+        }
+      });
+
+      // Render Nodes
+      data.nodes.forEach(n => {
+        const pos = positions[n.id];
+        if (pos) {
+          const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          g.setAttribute('class', `node-elem pattern-${n.typology}`);
+          g.onclick = () => selectAccount(n.id, n.typology, n.risk_score);
+
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', pos.x);
+          circle.setAttribute('cy', pos.y);
+          circle.setAttribute('r', n.risk_score > 50 ? '8' : '5');
+          circle.setAttribute('fill', getColor(n.typology));
+          circle.setAttribute('stroke', 'var(--surface)');
+          circle.setAttribute('stroke-width', '1.5');
+          circle.style.cursor = 'pointer';
+
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', pos.x + 10);
+          text.setAttribute('y', pos.y + 4);
+          text.setAttribute('font-family', 'IBM Plex Mono');
+          text.setAttribute('font-size', '9');
+          text.setAttribute('fill', 'var(--ink)');
+          text.textContent = n.id;
+
+          g.appendChild(circle);
+          if (n.is_flagged) g.appendChild(text);
+          nodesG.appendChild(g);
+        }
+      });
+
+      applyPatternFilter();
+    }
+
+    async function selectAccount(id, typology, score) {
+      document.getElementById('panel-account-id').innerText = id;
+      document.getElementById('panel-score-val').innerText = score.toFixed(1);
+      document.getElementById('panel-score-bar').style.width = `${Math.min(100, score)}%`;
+      const badge = document.getElementById('panel-typology-badge');
+      badge.innerText = typology;
+      badge.style.color = getColor(typology);
+
+      try {
+        const res = await fetch(`/api/accounts/${id}/explanation`);
+        if (res.ok) {
+          const data = await res.json();
+          renderShapReasons(data.top_reasons);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderShapReasons(reasons) {
+      const container = document.getElementById('shap-list');
+      container.innerHTML = '';
+      if (!reasons || reasons.length === 0) return;
+      reasons.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'shap-item';
+        div.innerHTML = `
+          <div class="shap-item-text">${r.plain_language}</div>
+          <div class="shap-bar" style="width:${Math.min(100, Math.abs(r.contribution) * 100)}%;"></div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function setPattern(pattern) {
+      activePattern = pattern;
+      document.querySelectorAll('.filter-bar button').forEach(b => {
+        b.setAttribute('aria-pressed', b.innerText.toUpperCase().includes(pattern.replace('_', '')) ? 'true' : 'false');
+      });
+      applyPatternFilter();
+    }
+
+    function applyPatternFilter() {
+      document.querySelectorAll('.node-elem').forEach(el => {
+        if (activePattern === 'ALL' || el.classList.contains(`pattern-${activePattern}`)) {
+          el.classList.remove('dimmed');
+        } else {
+          el.classList.add('dimmed');
+        }
+      });
+    }
+
+    function getColor(typology) {
+      switch (typology) {
+        case 'CIRCULAR': return 'var(--c-circular)';
+        case 'FAN_IN_FAN_OUT': return 'var(--c-fan)';
+        case 'LAYERING': return 'var(--c-layering)';
+        case 'STRUCTURING': return 'var(--c-structuring)';
+        case 'UNUSUAL': return 'var(--c-unusual)';
+        default: return 'var(--c-none)';
+      }
+    }
+
+    function changeModel(val) {
+      alert(`Model switched to ${val.toUpperCase()}. Evaluating risk scores.`);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
