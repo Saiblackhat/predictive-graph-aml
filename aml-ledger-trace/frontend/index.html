@@ -456,9 +456,22 @@
         </div>
       </div>
 
-      <button style="background:var(--ink); color:var(--surface); border:none; border-radius:4px; padding:10px; font-family:'IBM Plex Mono', monospace; font-size:12px; cursor:pointer;" onclick="alert('Account marked for formal compliance investigation review.')">
-        Mark for Review
-      </button>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button style="background:var(--ink); color:var(--surface); border:none; border-radius:4px; padding:10px; font-family:'IBM Plex Mono', monospace; font-size:12px; cursor:pointer;" onclick="createCaseAndDownloadSAR()">
+          Generate SAR (PDF)
+        </button>
+        <div style="display:flex; gap:8px;">
+          <button style="flex:1; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:4px; padding:8px; font-family:'IBM Plex Mono', monospace; font-size:11px; cursor:pointer;" onclick="expandAccountNeighborhood(1)">
+            1-Hop Expand
+          </button>
+          <button style="flex:1; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:4px; padding:8px; font-family:'IBM Plex Mono', monospace; font-size:11px; cursor:pointer;" onclick="expandAccountNeighborhood(2)">
+            2-Hop Expand
+          </button>
+        </div>
+        <button style="background:var(--surface); color:var(--muted); border:1px solid var(--line); border-radius:4px; padding:8px; font-family:'IBM Plex Mono', monospace; font-size:11px; cursor:pointer;" onclick="alert('Account marked for formal compliance review.')">
+          Mark for Review
+        </button>
+      </div>
     </aside>
   </main>
 
@@ -716,8 +729,50 @@
       }
     }
 
-    function changeModel(val) {
-      alert(`Model switched to ${val.toUpperCase()}. Evaluating risk scores.`);
+    async function createCaseAndDownloadSAR() {
+      const accId = document.getElementById('panel-account-id').innerText;
+      if (!accId) return;
+      try {
+        const createRes = await fetch('/api/cases', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            account_id: accId,
+            title: `Investigation for ${accId}`,
+            priority: 'HIGH'
+          })
+        });
+        if (!createRes.ok) throw new Error('Case creation failed');
+        const cData = await createRes.json();
+        
+        // Request SAR PDF
+        const sarRes = await fetch(`/api/cases/${cData.id}/sar`, { method: 'POST' });
+        if (!sarRes.ok) throw new Error('SAR generation failed');
+        const blob = await sarRes.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `SAR_Case_${cData.id}_${accId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } catch (err) {
+        alert('SAR Generation Error: ' + err.message);
+      }
+    }
+
+    async function expandAccountNeighborhood(hops) {
+      const accId = document.getElementById('panel-account-id').innerText;
+      if (!accId) return;
+      try {
+        const res = await fetch(`/api/network?center_id=${accId}&hops=${hops}&max_nodes=35`);
+        if (res.ok) {
+          const data = await res.json();
+          renderSvgGraph(data);
+        }
+      } catch (err) {
+        console.error('Neighborhood expansion error:', err);
+      }
     }
 
     window.onload = init;
